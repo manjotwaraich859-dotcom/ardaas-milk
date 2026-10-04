@@ -1,0 +1,1927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f6a49">
+<meta name="description" content="Daily milk, bills and payments for Ardaas Agri & Milk Farm. Works offline. Data stays on this phone.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ardaas Milk">
+<title>Ardaas Agri &amp; Milk Farm</title>
+<style>
+/* Layout: one narrow column (max 560px) of cards, fixed bottom tab bar, bottom sheets for forms. */
+:root {
+  --bg: #eef3ee;
+  --surface: #ffffff;
+  --surface-2: #f6f9f6;
+  --ink: #16231b;
+  --muted: #5b6a61;
+  --line: #d6e0d8;
+  --accent: #0f6a49;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcefe4;
+  --not: #b2432a;
+  --not-soft: #f9e5de;
+  --none: #7d8a82;
+  --warn: #8a5a00;
+  --warn-soft: #fff2d1;
+  --danger: #b42318;
+  --danger-soft: #fde7e5;
+  --shadow: 0 1px 2px rgba(16, 40, 26, .06), 0 4px 14px rgba(16, 40, 26, .05);
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", "Noto Sans Gurmukhi", sans-serif;
+  --font-display: ui-serif, Georgia, "Noto Serif", serif;
+  --r: 14px;
+  --nav-h: 64px;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1410; --surface: #16201a; --surface-2: #1b2720; --ink: #e5eee8; --muted: #9babA1; --line: #2a3830;
+    --accent: #4cc48b; --accent-ink: #04130b; --accent-soft: #173828; --not: #f08a6e; --not-soft: #3a1f17;
+    --none: #8d9a92; --warn: #f2bb52; --warn-soft: #362a0d; --danger: #f97066; --danger-soft: #3d1714;
+    --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1410; --surface: #16201a; --surface-2: #1b2720; --ink: #e5eee8; --muted: #9baba1; --line: #2a3830;
+  --accent: #4cc48b; --accent-ink: #04130b; --accent-soft: #173828; --not: #f08a6e; --not-soft: #3a1f17;
+  --none: #8d9a92; --warn: #f2bb52; --warn-soft: #362a0d; --danger: #f97066; --danger-soft: #3d1714;
+  --shadow: 0 1px 2px rgba(0,0,0,.4); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { background: var(--bg); color: var(--ink); }
+body { margin: 0; font-family: var(--font); font-size: 16px; line-height: 1.45; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--accent); }
+.num, .stat b, td, .amt, .money { font-variant-numeric: tabular-nums; }
+
+#app { max-width: 560px; margin: 0 auto; padding: 12px 16px calc(var(--nav-h) + 28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; }
+#view { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+/* headings */
+.top { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-top: 6px; }
+.top h1 { margin: 0; font-family: var(--font-display); font-size: 1.6rem; line-height: 1.15; letter-spacing: -.01em; text-wrap: balance; }
+.eyebrow { font-size: .74rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; }
+h2 { font-size: 1.05rem; margin: 0; }
+h3 { font-size: 1.05rem; margin: 0; }
+.muted { color: var(--muted); font-size: .9rem; }
+.small { font-size: .82rem; }
+
+/* cards */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px; display: flex; flex-direction: column; gap: 12px; box-shadow: var(--shadow); min-width: 0; }
+.card-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stat { background: var(--surface-2); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.stat b { font-size: 1.3rem; line-height: 1.2; overflow-wrap: anywhere; }
+.stat span { font-size: .8rem; color: var(--muted); }
+.stat.wide { grid-column: 1 / -1; }
+.stat.hl { background: var(--accent-soft); }
+.stat.hl b { color: var(--accent); }
+.stat.due b { color: var(--not); }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 18px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; text-decoration: none; color: var(--ink); cursor: pointer; text-align: center; }
+.btn:active { transform: translateY(1px); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.btn.ghost-danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn.block { width: 100%; }
+.btn.big { min-height: 60px; font-size: 1.1rem; letter-spacing: .02em; }
+.btn.sm { min-height: 40px; padding: 6px 12px; font-size: .9rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-row > .btn { flex: 1 1 140px; }
+.btn-col { display: flex; flex-direction: column; gap: 10px; }
+.link { background: none; border: 0; color: var(--accent); font-weight: 600; padding: 8px 0; cursor: pointer; text-align: left; min-height: 40px; }
+.iconbtn { width: 48px; height: 48px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 1.5rem; line-height: 1; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* notices */
+.notice { border-radius: 12px; padding: 12px 14px; font-size: .92rem; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--line); background: var(--surface-2); }
+.notice.warn { background: var(--warn-soft); border-color: transparent; color: var(--ink); }
+.notice.warn b { color: var(--warn); }
+.notice.danger { background: var(--danger-soft); border-color: transparent; }
+.notice.danger b { color: var(--danger); }
+.notice.ok { background: var(--accent-soft); border-color: transparent; }
+.notice .btn { align-self: flex-start; }
+.backup-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .9rem; padding: 10px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); flex-wrap: wrap; }
+.dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 6px; background: var(--accent); }
+.dot.warn { background: var(--warn); }
+
+/* tags + pills */
+.tag { display: inline-block; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding: 2px 7px; border-radius: 6px; vertical-align: middle; }
+.tag.sample { background: var(--warn-soft); color: var(--warn); }
+.tag.inactive { background: var(--surface-2); color: var(--muted); border: 1px solid var(--line); }
+.pill { font-size: .75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; letter-spacing: .02em; }
+.p-taken { background: var(--accent-soft); color: var(--accent); }
+.p-not_taken { background: var(--not-soft); color: var(--not); }
+.p-none { background: transparent; color: var(--none); border: 1.5px dashed var(--none); }
+
+/* forms */
+label.f { display: flex; flex-direction: column; gap: 6px; font-size: .88rem; font-weight: 600; color: var(--muted); }
+.f input, .f select, .f textarea, input.search { width: 100%; min-height: 50px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); font-size: 1rem; color: var(--ink); font-weight: 400; }
+.f textarea { min-height: 80px; resize: vertical; }
+.f input:focus, .f select:focus, .f textarea:focus, input.search:focus { outline: 2px solid var(--accent); border-color: transparent; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.check { display: flex; gap: 12px; align-items: flex-start; font-size: .95rem; padding: 6px 0; }
+.check input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); font-weight: 600; cursor: pointer; font-size: .92rem; }
+.chip.on { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.req { color: var(--not); }
+.hint { font-size: .8rem; color: var(--muted); font-weight: 400; }
+
+/* date + month bars */
+.datebar { display: flex; align-items: center; gap: 8px; }
+.datepick { flex: 1; position: relative; min-height: 48px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-weight: 700; padding: 0 10px; text-align: center; }
+.datepick input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.datepick small { display: block; font-weight: 500; color: var(--muted); font-size: .75rem; }
+
+/* daily */
+.sumrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.sumrow .stat b { font-size: 1.1rem; }
+.dcard { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 14px; display: flex; flex-direction: column; gap: 12px; border-left: 5px solid var(--none); }
+.dcard.st-taken { border-left-color: var(--accent); }
+.dcard.st-not_taken { border-left-color: var(--not); }
+.dcard.st-none { border-left-style: dashed; }
+.dc-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.dc-top > div { min-width: 0; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg-b { min-height: 54px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface-2); font-weight: 800; letter-spacing: .04em; cursor: pointer; font-size: .98rem; }
+.seg-b.taken.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.seg-b.not.on { background: var(--not); border-color: var(--not); color: #fff; }
+.seg3 { grid-template-columns: 1fr 1fr 1fr; }
+.seg-b.none.on { background: var(--surface); border-color: var(--none); border-style: dashed; color: var(--ink); }
+.qty { display: flex; align-items: center; gap: 8px; }
+.qty input { width: 84px; min-height: 48px; text-align: center; font-size: 1.2rem; font-weight: 700; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 4px; }
+.qty .unit { font-weight: 700; color: var(--muted); }
+.qty .amt { margin-left: auto; font-weight: 800; font-size: 1.15rem; }
+.qty-none { color: var(--muted); font-size: .92rem; display: flex; justify-content: space-between; }
+.row-actions { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: -6px; }
+
+/* lists */
+.list { display: flex; flex-direction: column; gap: 8px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; text-decoration: none; color: var(--ink); min-height: 64px; cursor: pointer; text-align: left; width: 100%; }
+.row > div { min-width: 0; }
+.row .r-right { text-align: right; flex: none; }
+.row .name { font-weight: 700; overflow-wrap: anywhere; }
+.chev::after { content: "›"; font-size: 1.5rem; color: var(--muted); margin-left: 6px; }
+.menu .row { min-height: 60px; }
+.due-pos { color: var(--not); font-weight: 700; }
+.due-neg { color: var(--accent); font-weight: 700; }
+.empty { text-align: center; padding: 28px 16px; color: var(--muted); border: 1.5px dashed var(--line); border-radius: var(--r); display: flex; flex-direction: column; gap: 12px; align-items: center; }
+
+/* tables */
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { padding: 10px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface-2); position: sticky; top: 0; }
+td.r, th.r { text-align: right; }
+tr.tap { cursor: pointer; }
+tr.norec td { color: var(--none); }
+tfoot td { font-weight: 800; background: var(--surface-2); }
+.st-t { color: var(--accent); font-weight: 700; }
+.st-n { color: var(--not); font-weight: 700; }
+
+dl.kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 0; font-size: .95rem; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+
+details.adv { border: 1px solid var(--line); border-radius: var(--r); background: var(--surface); }
+details.adv summary { padding: 16px; font-weight: 700; cursor: pointer; min-height: 52px; }
+details.adv > div { padding: 0 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+ol.steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: .93rem; }
+
+/* bottom nav */
+nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--surface); border-top: 1px solid var(--line); padding-bottom: env(safe-area-inset-bottom, 0px); }
+nav.tabs .in { max-width: 560px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); height: var(--nav-h); }
+nav.tabs a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--muted); font-size: .72rem; font-weight: 600; }
+nav.tabs a svg { width: 24px; height: 24px; }
+nav.tabs a.on { color: var(--accent); }
+nav.tabs a.on svg { stroke-width: 2.4; }
+
+/* bottom sheet */
+#sheetwrap { position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: rgba(8, 20, 13, .5); }
+#sheet { width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto; background: var(--bg); border-radius: 20px 20px 0 0; padding: 18px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; }
+#sheet h2 { font-size: 1.25rem; }
+.sheet-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.grab { width: 44px; height: 5px; border-radius: 3px; background: var(--line); margin: -6px auto 2px; }
+form.stack { display: flex; flex-direction: column; gap: 14px; }
+
+/* toast + update bar */
+#toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--nav-h) + 14px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--ink); color: var(--bg); padding: 12px 16px; border-radius: 12px; max-width: calc(100% - 32px); width: max-content; display: flex; gap: 14px; align-items: center; font-size: .93rem; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
+#toast button { background: none; border: 0; color: var(--accent-soft); font-weight: 800; cursor: pointer; min-height: 36px; text-transform: uppercase; letter-spacing: .04em; }
+#updatebar { background: var(--accent); color: var(--accent-ink); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .92rem; }
+#updatebar .btn { min-height: 40px; background: var(--accent-ink); color: var(--accent); border: 0; }
+
+.fatal { margin: 40px auto; max-width: 480px; padding: 20px; }
+@media (max-width: 360px) { .grid2 { grid-template-columns: 1fr; } .sumrow { grid-template-columns: 1fr 1fr; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="updatebar" hidden>
+    <span>A new version of the app is ready. Your data stays on this phone.</span>
+    <button class="btn sm" data-act="applyUpdate">Update</button>
+  </div>
+  <main id="view" aria-live="polite">
+    <div class="card"><p class="muted">Opening your milk records…</p></div>
+  </main>
+</div>
+<nav class="tabs" id="tabs" aria-label="Main">
+  <div class="in">
+    <a href="#/home" data-tab="home"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Home</a>
+    <a href="#/daily" data-tab="daily"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3h8l-1 4 2 3v10a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V10l2-3z"/><path d="M7 13h10"/></svg>Daily</a>
+    <a href="#/customers" data-tab="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.8c1.9.7 3.1 2.4 3.5 5.2"/></svg>Customers</a>
+    <a href="#/bills" data-tab="bills"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Bills</a>
+    <a href="#/more" data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>More</a>
+  </div>
+</nav>
+<div id="sheetwrap" hidden><div id="sheet" role="dialog" aria-modal="true"></div></div>
+<div id="toast" hidden role="status"></div>
+<input type="file" id="filepick" hidden>
+
+<script>
+/* =====================================================================
+   Ardaas Milk — CORE (pure logic, no screen code)
+   ---------------------------------------------------------------------
+   Everything that decides what the user's data IS lives here:
+   - versions (app, data schema, backup format)
+   - stable IDs, dates, money rounding
+   - price history, milk record maths, monthly bills
+   - backup file format, checksum, validation
+   - migrations (old data  ->  new data shape)
+   - merge planning
+   This file has no DOM code so it can be unit-tested on its own.
+   ===================================================================== */
+(function (root) {
+  'use strict';
+
+  const APP = {
+    name: 'Ardaas Agri & Milk Farm',
+    id: 'ardaas-milk',
+    dbName: 'ardaas-milk-db',
+    version: '1.0.0',      // app release number shown to the user
+    schemaVersion: 1,      // shape of customers / milk_records / payments / settings
+    backupVersion: 1,      // shape of the backup file envelope
+    minSchemaSupported: 1  // oldest data shape this app can still upgrade
+  };
+  
+
+  const FORMAT = 'ardaas-milk-backup';
+  const METHODS = ['Cash', 'UPI', 'Bank Transfer', 'Other'];
+  const STATUSES = ['taken', 'not_taken'];   // "no record" = no row at all
+
+  const DEFAULT_SETTINGS = {
+    farm_name: 'Ardaas Agri & Milk Farm',
+    owner_label: '',
+    default_price: 90,
+    default_qty: 1,
+    backup_reminder_days: 7
+  };
+
+  /* ---------- MIGRATIONS ----------------------------------------------
+     MIGRATIONS[N] upgrades data FROM schema N TO schema N+1.
+     Rules for future versions:
+       1. Never edit or delete an old migration. Only add new ones.
+       2. Bump APP.schemaVersion by 1 for every new migration.
+       3. A migration receives a deep copy and returns the new data.
+     Example for a future v2 (do not uncomment in v1):
+       1: (d) => { d.customers.forEach(c => { c.route_order = 0; }); return d; }
+  --------------------------------------------------------------------- */
+  const MIGRATIONS = {
+    
+  };
+
+  /* ---------- small helpers ---------- */
+  const pad = (n) => String(n).padStart(2, '0');
+  const dateStr = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const today = () => dateStr(new Date());
+  const nowISO = () => new Date().toISOString();
+  function isDate(s) {
+    if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+    const [y, m, d] = s.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+  }
+  function addDays(s, n) { const [y, m, d] = s.split('-').map(Number); return dateStr(new Date(y, m - 1, d + n)); }
+  const monthOf = (s) => s.slice(0, 7);
+  function daysInMonth(ym) { const [y, m] = ym.split('-').map(Number); return new Date(y, m, 0).getDate(); }
+  function addMonths(ym, n) { const [y, m] = ym.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; }
+  function daysBetween(a, b) {
+    const [y1, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number);
+    return Math.round((Date.UTC(y2, m2 - 1, d2) - Date.UTC(y1, m1 - 1, d1)) / 86400000);
+  }
+  const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+  const roundL = (n) => Math.round((Number(n) + Number.EPSILON) * 1000) / 1000;
+  const isNum = (n) => typeof n === 'number' && Number.isFinite(n);
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+
+  function uid(prefix) {
+    let r;
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) r = crypto.randomUUID().replace(/-/g, '');
+    else r = Date.now().toString(16) + Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+    return `${prefix}_${r.slice(0, 20)}`;
+  }
+
+  // cyrb53 — small, fast, deterministic hash used as a corruption check
+  function hash(str, seed = 0) {
+    let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+    for (let i = 0, ch; i < str.length; i++) {
+      ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+  }
+  const checksumOf = (data) => 'cyrb53:' + hash(JSON.stringify(data));
+
+  /* ---------- prices ---------- */
+  function sortedHistory(c) {
+    return (c.price_history || []).slice().sort((a, b) => (a.from < b.from ? -1 : a.from > b.from ? 1 : 0));
+  }
+  // Price that applies to a customer on a given date (uses price history)
+  function priceOn(c, date) {
+    const h = sortedHistory(c);
+    let p = null;
+    for (const e of h) if (e.from <= date) p = e.price;
+    if (p == null) p = h.length ? h[0].price : c.price_per_liter;
+    return Number(p) || 0;
+  }
+
+  /* ---------- records ---------- */
+  function buildRecord({ id, customer_id, date, status, quantity, price, created_at }) {
+    const q = status === 'taken' ? roundL(quantity) : 0;
+    const p = round2(price);
+    const t = nowISO();
+    return {
+      id: id || uid('r'), customer_id, date, status,
+      quantity: q, price_per_liter: p, amount: round2(q * p),
+      created_at: created_at || t, updated_at: t
+    };
+  }
+
+  /* ---------- normalisation (fills optional fields, never hides errors) ---------- */
+  function normalizeData(d) {
+    const s = d && typeof d.settings === 'object' && d.settings ? d.settings : {};
+    const t = nowISO();
+    return {
+      customers: (d.customers || []).map((c) => {
+        c = c || {};
+        const price = Number(c.price_per_liter);
+        const hist = Array.isArray(c.price_history) && c.price_history.length
+          ? c.price_history.map((e) => ({ from: e && e.from, price: Number(e && e.price) }))
+          : [{ from: c.start_date, price }];
+        return {
+          id: c.id, name: typeof c.name === 'string' ? c.name.trim() : '',
+          phone: c.phone == null ? '' : String(c.phone), address: c.address == null ? '' : String(c.address),
+          regular_qty: Number(c.regular_qty), price_per_liter: price, price_history: hist,
+          start_date: c.start_date, active: c.active !== false, notes: c.notes == null ? '' : String(c.notes),
+          is_sample: !!c.is_sample, created_at: c.created_at || t, updated_at: c.updated_at || c.created_at || t,
+          ...extraFields(c, ['id', 'name', 'phone', 'address', 'regular_qty', 'price_per_liter', 'price_history', 'start_date', 'active', 'notes', 'is_sample', 'created_at', 'updated_at'])
+        };
+      }),
+      milk_records: (d.milk_records || []).map((r) => {
+        r = r || {};
+        return {
+          id: r.id, customer_id: r.customer_id, date: r.date, status: r.status,
+          quantity: Number(r.quantity), price_per_liter: Number(r.price_per_liter), amount: Number(r.amount),
+          created_at: r.created_at || t, updated_at: r.updated_at || r.created_at || t,
+          ...extraFields(r, ['id', 'customer_id', 'date', 'status', 'quantity', 'price_per_liter', 'amount', 'created_at', 'updated_at'])
+        };
+      }),
+      payments: (d.payments || []).map((p) => {
+        p = p || {};
+        return {
+          id: p.id, customer_id: p.customer_id, date: p.date, amount: Number(p.amount),
+          method: METHODS.includes(p.method) ? p.method : 'Other', notes: p.notes == null ? '' : String(p.notes),
+          created_at: p.created_at || t, updated_at: p.updated_at || p.created_at || t,
+          ...extraFields(p, ['id', 'customer_id', 'date', 'amount', 'method', 'notes', 'created_at', 'updated_at'])
+        };
+      }),
+      settings: { ...DEFAULT_SETTINGS, ...s }
+    };
+  }
+  // keep unknown fields (added by future migrations) instead of silently dropping them
+  function extraFields(o, known) {
+    const out = {};
+    for (const k of Object.keys(o)) if (!known.includes(k)) out[k] = o[k];
+    return out;
+  }
+
+  /* ---------- validation ---------- */
+  function validateData(d) {
+    const errors = [], warnings = [];
+    const err = (m) => { if (errors.length < 200) errors.push(m); };
+    if (!d || !Array.isArray(d.customers) || !Array.isArray(d.milk_records) || !Array.isArray(d.payments)) {
+      return { errors: ['Customers, milk records or payments list is missing.'], warnings };
+    }
+    const cIds = new Set();
+    d.customers.forEach((c, i) => {
+      const at = `Customer #${i + 1}${c && c.name ? ` (${c.name})` : ''}`;
+      if (typeof c.id !== 'string' || !c.id) return err(`${at}: missing ID.`);
+      if (cIds.has(c.id)) err(`${at}: duplicate customer ID ${c.id}.`);
+      cIds.add(c.id);
+      if (!c.name) err(`${at}: missing name.`);
+      if (!isNum(c.regular_qty) || c.regular_qty < 0 || c.regular_qty > 1000) err(`${at}: invalid regular quantity.`);
+      if (!isNum(c.price_per_liter) || c.price_per_liter < 0 || c.price_per_liter > 100000) err(`${at}: invalid price per liter.`);
+      if (!isDate(c.start_date)) err(`${at}: invalid start date.`);
+      if (typeof c.active !== 'boolean') err(`${at}: invalid active status.`);
+      (c.price_history || []).forEach((e) => {
+        if (!isDate(e.from) || !isNum(e.price) || e.price < 0) err(`${at}: invalid price history entry.`);
+      });
+    });
+    const rIds = new Set(), keys = new Set();
+    d.milk_records.forEach((r, i) => {
+      const at = `Milk record #${i + 1}`;
+      if (typeof r.id !== 'string' || !r.id) return err(`${at}: missing ID.`);
+      if (rIds.has(r.id)) err(`${at}: duplicate record ID ${r.id}.`);
+      rIds.add(r.id);
+      if (!cIds.has(r.customer_id)) err(`${at}: belongs to a customer that is not in the file.`);
+      if (!isDate(r.date)) err(`${at}: invalid date.`);
+      if (!STATUSES.includes(r.status)) err(`${at}: invalid status "${r.status}".`);
+      if (!isNum(r.quantity) || r.quantity < 0 || r.quantity > 1000) err(`${at}: invalid quantity.`);
+      if (r.status === 'not_taken' && r.quantity !== 0) err(`${at}: "Not taken" must have 0 liters.`);
+      if (!isNum(r.price_per_liter) || r.price_per_liter < 0) err(`${at}: invalid price per liter.`);
+      if (!isNum(r.amount)) err(`${at}: invalid amount.`);
+      else if (isNum(r.quantity) && isNum(r.price_per_liter) && Math.abs(r.amount - round2(r.quantity * r.price_per_liter)) > 0.011)
+        err(`${at}: amount does not match liters × price.`);
+      const k = r.customer_id + '|' + r.date;
+      if (keys.has(k)) err(`${at}: two entries for the same customer on ${r.date}.`);
+      keys.add(k);
+    });
+    const pIds = new Set();
+    d.payments.forEach((p, i) => {
+      const at = `Payment #${i + 1}`;
+      if (typeof p.id !== 'string' || !p.id) return err(`${at}: missing ID.`);
+      if (pIds.has(p.id)) err(`${at}: duplicate payment ID ${p.id}.`);
+      pIds.add(p.id);
+      if (!cIds.has(p.customer_id)) err(`${at}: belongs to a customer that is not in the file.`);
+      if (!isDate(p.date)) err(`${at}: invalid date.`);
+      if (!isNum(p.amount) || p.amount <= 0) err(`${at}: invalid amount.`);
+    });
+    return { errors, warnings };
+  }
+
+  /* ---------- migrations ---------- */
+  function migrateData(data, from, to = APP.schemaVersion, migrations = MIGRATIONS) {
+    let d = clone(data);
+    const steps = [];
+    for (let v = from; v < to; v++) {
+      const fn = migrations[v];
+      if (typeof fn !== 'function') throw new Error(`This app cannot upgrade data from format ${v} to ${v + 1}.`);
+      d = fn(d) || d;
+      steps.push(`${v}→${v + 1}`);
+    }
+    return { data: d, steps };
+  }
+
+  /* ---------- backup file ---------- */
+  function cleanData(d) {
+    return {
+      customers: d.customers.map(clone),
+      milk_records: d.milk_records.map(clone),
+      payments: d.payments.map(clone),
+      settings: clone({ ...DEFAULT_SETTINGS, ...(d.settings || {}) })
+    };
+  }
+  function buildBackup(d, ownerLabel) {
+    const data = cleanData(d);
+    return {
+      format: FORMAT,
+      backup_version: APP.backupVersion,
+      schema_version: APP.schemaVersion,
+      app_name: APP.name,
+      app_version: APP.version,
+      created_at: nowISO(),
+      created_date: today(),
+      owner_label: ownerLabel || '',
+      counts: { customers: data.customers.length, milk_records: data.milk_records.length, payments: data.payments.length },
+      checksum: checksumOf(data),
+      note: 'Ardaas milk backup. Keep this file safe. Restore it from Backup & Restore in the app.',
+      data
+    };
+  }
+  // one record per line: readable, diff-able, still plain JSON
+  function serializeBackup(b) {
+    const { data, ...meta } = b;
+    const L = ['{'];
+    for (const [k, v] of Object.entries(meta)) L.push(`  ${JSON.stringify(k)}: ${JSON.stringify(v)},`);
+    L.push('  "data": {');
+    const keys = Object.keys(data);
+    keys.forEach((k, i) => {
+      const v = data[k], last = i === keys.length - 1 ? '' : ',';
+      if (Array.isArray(v)) {
+        L.push(`    ${JSON.stringify(k)}: [`);
+        v.forEach((item, j) => L.push('      ' + JSON.stringify(item) + (j < v.length - 1 ? ',' : '')));
+        L.push('    ]' + last);
+      } else L.push(`    ${JSON.stringify(k)}: ${JSON.stringify(v)}${last}`);
+    });
+    L.push('  }', '}');
+    return L.join('\n');
+  }
+  function slug(s) { return String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30); }
+  function backupFilename(ownerLabel, date = today()) {
+    const s = slug(ownerLabel);
+    return `ardaas-milk-backup-${s ? s + '-' : ''}${date}.json`;
+  }
+
+  // Read a backup file. Never touches the database — only reports.
+  function parseBackup(text) {
+    const fail = (message, details = [], extra = {}) => ({ ok: false, message, details, ...extra });
+    const INVALID = 'Backup could not be restored because the file contains invalid or incomplete data.';
+    let obj;
+    try { obj = JSON.parse(String(text).replace(/^﻿/, '')); }
+    catch (e) { return fail('This file is not a valid Ardaas backup. It could not be read as a backup file (it may be damaged or cut off).'); }
+    if (!obj || typeof obj !== 'object' || obj.format !== FORMAT) return fail('This file is not an Ardaas milk backup.');
+    const bv = obj.backup_version, sv = obj.schema_version;
+    if (!Number.isInteger(bv) || !Number.isInteger(sv)) return fail(INVALID, ['Version information is missing.']);
+    if (bv > APP.backupVersion || sv > APP.schemaVersion) {
+      return fail(`This backup was made by a newer version of the app (${obj.app_version || 'unknown'}). Update this app first, then restore.`, [], { future: true });
+    }
+    if (sv < APP.minSchemaSupported) return fail(`This backup is from a very old version (data format ${sv}) that this app no longer supports.`);
+    if (!obj.data || typeof obj.data !== 'object') return fail(INVALID, ['The data section is missing.']);
+    for (const k of ['customers', 'milk_records', 'payments']) {
+      if (!Array.isArray(obj.data[k])) return fail(INVALID, [`The ${k.replace('_', ' ')} list is missing.`]);
+    }
+    const warnings = [];
+    if (obj.checksum) {
+      if (checksumOf(obj.data) !== obj.checksum) return fail(INVALID, ['The file was damaged or changed after it was created (checksum does not match).']);
+    } else warnings.push('This file has no checksum, so damage could not be fully ruled out.');
+    if (obj.counts) {
+      for (const k of ['customers', 'milk_records', 'payments']) {
+        if (obj.counts[k] !== obj.data[k].length) return fail(INVALID, [`Expected ${obj.counts[k]} ${k.replace('_', ' ')} but found ${obj.data[k].length}. The file looks incomplete.`]);
+      }
+    }
+    let migrated;
+    try { migrated = migrateData(obj.data, sv); } catch (e) { return fail(e.message); }
+    const data = normalizeData(migrated.data);
+    const v = validateData(data);
+    if (v.errors.length) return fail(INVALID, v.errors);
+    return {
+      ok: true, data, warnings: warnings.concat(v.warnings),
+      info: {
+        created_at: obj.created_at || null, app_version: obj.app_version || 'unknown', owner_label: obj.owner_label || '',
+        backup_version: bv, schema_version: sv, target_schema: APP.schemaVersion,
+        status: sv === APP.schemaVersion ? 'current' : 'older', steps: migrated.steps,
+        counts: { customers: data.customers.length, milk_records: data.milk_records.length, payments: data.payments.length }
+      }
+    };
+  }
+
+  /* ---------- merge (adds only, never deletes or overwrites) ---------- */
+  function planMerge(current, incoming) {
+    const cIds = new Set(current.customers.map((c) => c.id));
+    const rIds = new Set(current.milk_records.map((r) => r.id));
+    const rKeys = new Set(current.milk_records.map((r) => r.customer_id + '|' + r.date));
+    const pIds = new Set(current.payments.map((p) => p.id));
+    const names = new Set(current.customers.map((c) => c.name.trim().toLowerCase()));
+    const add = { customers: [], milk_records: [], payments: [] };
+    const skip = { customers: 0, milk_records: 0, payments: 0 };
+    const sameName = [];
+    for (const c of incoming.customers) {
+      if (cIds.has(c.id)) { skip.customers++; continue; }
+      add.customers.push(c);
+      if (names.has(c.name.trim().toLowerCase())) sameName.push(c.name);
+    }
+    for (const r of incoming.milk_records) {
+      const k = r.customer_id + '|' + r.date;
+      if (rIds.has(r.id) || rKeys.has(k)) { skip.milk_records++; continue; }
+      rKeys.add(k); add.milk_records.push(r);
+    }
+    for (const p of incoming.payments) {
+      if (pIds.has(p.id)) { skip.payments++; continue; }
+      add.payments.push(p);
+    }
+    return { add, skip, sameName };
+  }
+
+  /* ---------- index + bill maths ---------- */
+  function buildIndex(d) {
+    const customers = new Map(), recsByCust = new Map(), paysByCust = new Map(), recByKey = new Map(), recsByDate = new Map();
+    for (const c of d.customers) { customers.set(c.id, c); recsByCust.set(c.id, []); paysByCust.set(c.id, []); }
+    for (const r of d.milk_records) {
+      if (!recsByCust.has(r.customer_id)) recsByCust.set(r.customer_id, []);
+      recsByCust.get(r.customer_id).push(r);
+      recByKey.set(r.customer_id + '|' + r.date, r);
+      if (!recsByDate.has(r.date)) recsByDate.set(r.date, []);
+      recsByDate.get(r.date).push(r);
+    }
+    for (const p of d.payments) {
+      if (!paysByCust.has(p.customer_id)) paysByCust.set(p.customer_id, []);
+      paysByCust.get(p.customer_id).push(p);
+    }
+    for (const a of recsByCust.values()) a.sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : 0));
+    for (const a of paysByCust.values()) a.sort((x, y) => (x.date < y.date ? -1 : x.date > y.date ? 1 : 0));
+    return { customers, recsByCust, paysByCust, recByKey, recsByDate };
+  }
+
+  // Bill rules: amount = actual liters × the price stored on that day's record.
+  // "No record" days are never counted as missed days.
+  function customerPeriod(idx, cid, from, to) {
+    let liters = 0, bill = 0, daysTaken = 0, daysNot = 0, paid = 0;
+    for (const r of idx.recsByCust.get(cid) || []) {
+      if (r.date < from || r.date > to) continue;
+      if (r.status === 'taken') { liters += r.quantity; bill += r.amount; daysTaken++; }
+      else if (r.status === 'not_taken') daysNot++;
+    }
+    for (const p of idx.paysByCust.get(cid) || []) if (p.date >= from && p.date <= to) paid += p.amount;
+    return { liters: roundL(liters), bill: round2(bill), daysTaken, daysNot, paid: round2(paid) };
+  }
+  function customerMonth(idx, cid, ym, todayS = today()) {
+    const start = `${ym}-01`, end = `${ym}-${pad(daysInMonth(ym))}`;
+    const p = customerPeriod(idx, cid, start, end);
+    const before = customerPeriod(idx, cid, '0000-01-01', addDays(start, -1));
+    const previous = round2(before.bill - before.paid);
+    const c = idx.customers.get(cid);
+    let noRecord = 0;
+    if (c && c.active) {
+      const from = c.start_date > start ? c.start_date : start;
+      const to = end < todayS ? end : todayS;
+      for (let dd = from; dd <= to; dd = addDays(dd, 1)) if (!idx.recByKey.has(cid + '|' + dd)) noRecord++;
+    }
+    const remaining = round2(p.bill - p.paid);
+    return { ...p, noRecord, previous, remaining, totalDue: round2(previous + remaining) };
+  }
+  function customerBalance(idx, cid) {
+    const p = customerPeriod(idx, cid, '0000-01-01', '9999-12-31');
+    return round2(p.bill - p.paid);
+  }
+  function eligibleOn(c, date) { return c.active && c.start_date <= date; }
+  function dayTotals(idx, date) {
+    let liters = 0, sales = 0, served = 0, notTaking = 0, pending = 0;
+    for (const c of idx.customers.values()) {
+      const r = idx.recByKey.get(c.id + '|' + date);
+      if (r) {
+        if (r.status === 'taken') { liters += r.quantity; sales += r.amount; served++; } else notTaking++;
+      } else if (eligibleOn(c, date)) pending++;
+    }
+    return { liters: roundL(liters), sales: round2(sales), served, notTaking, pending };
+  }
+  function monthTotals(idx, ym) {
+    const start = `${ym}-01`, end = `${ym}-${pad(daysInMonth(ym))}`;
+    let liters = 0, sales = 0, collected = 0, outstanding = 0, active = 0;
+    for (const c of idx.customers.values()) {
+      const p = customerPeriod(idx, c.id, start, end);
+      liters += p.liters; sales += p.bill; collected += p.paid;
+      const bal = customerBalance(idx, c.id);
+      if (bal > 0) outstanding += bal;
+      if (c.active) active++;
+    }
+    return { liters: roundL(liters), sales: round2(sales), collected: round2(collected), outstanding: round2(outstanding), active };
+  }
+
+  /* ---------- sample data (clearly marked is_sample) ---------- */
+  function makeSampleData(todayS = today()) {
+    const start = addDays(todayS, -12);
+    const t = nowISO();
+    const defs = [
+      ['Gurpreet Singh', 2, 90, '98140 00001', 'Village Lalton'],
+      ['Amandeep Kaur', 1, 90, '98140 00002', 'Model Town'],
+      ['Harpreet Singh', 3, 95, '98140 00003', 'Dugri'],
+      ['Balwinder Singh', 1.5, 90, '98140 00004', 'Sarabha Nagar']
+    ];
+    const customers = defs.map(([name, q, price, phone, address]) => ({
+      id: uid('c'), name, phone, address, regular_qty: q, price_per_liter: price,
+      price_history: [{ from: start, price }], start_date: start, active: true,
+      notes: 'Sample customer — clear before real use', is_sample: true, created_at: t, updated_at: t
+    }));
+    const milk_records = [];
+    let seed = 7;
+    const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+    for (let dd = start; dd < todayS; dd = addDays(dd, 1)) {
+      for (const c of customers) {
+        const x = rnd();
+        if (x < 0.08) milk_records.push(buildRecord({ customer_id: c.id, date: dd, status: 'not_taken', quantity: 0, price: c.price_per_liter }));
+        else {
+          const q = x > 0.9 ? c.regular_qty + 0.5 : x > 0.84 ? Math.max(0.5, c.regular_qty - 0.5) : c.regular_qty;
+          milk_records.push(buildRecord({ customer_id: c.id, date: dd, status: 'taken', quantity: q, price: c.price_per_liter }));
+        }
+      }
+    }
+    const payments = [
+      { id: uid('p'), customer_id: customers[0].id, date: addDays(todayS, -3), amount: 1000, method: 'UPI', notes: 'Sample payment', created_at: t, updated_at: t },
+      { id: uid('p'), customer_id: customers[2].id, date: addDays(todayS, -1), amount: 2000, method: 'Cash', notes: 'Sample payment', created_at: t, updated_at: t }
+    ];
+    return { customers, milk_records, payments };
+  }
+
+  /* ---------- CSV ---------- */
+  function toCSV(rows) {
+    const q = (v) => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    return '﻿' + rows.map((r) => r.map(q).join(',')).join('\r\n');
+  }
+
+  const Core = {
+    APP, FORMAT, METHODS, STATUSES, DEFAULT_SETTINGS, MIGRATIONS,
+    pad, dateStr, today, nowISO, isDate, addDays, monthOf, daysInMonth, addMonths, daysBetween, round2, roundL, uid, hash, checksumOf, clone,
+    priceOn, sortedHistory, buildRecord, normalizeData, validateData, migrateData, cleanData, buildBackup, serializeBackup, backupFilename, slug, parseBackup,
+    planMerge, buildIndex, customerPeriod, customerMonth, customerBalance, eligibleOn, dayTotals, monthTotals, makeSampleData, toCSV
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = Core;
+  root.ArdaasCore = Core;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+(function () {
+'use strict';
+/* ===== APP PART 1: storage, state, helpers, router, sheets ===== */
+const C = window.ArdaasCore;
+const APP = C.APP;
+const $ = (s, el = document) => el.querySelector(s);
+
+/* ---------- formatting ---------- */
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+function money(n) {
+  n = Number(n) || 0;
+  const frac = Math.round(Math.abs(n) * 100) % 100 !== 0;
+  return (n < 0 ? '−₹' : '₹') + Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: frac ? 2 : 0, maximumFractionDigits: 2 });
+}
+const lit = (n) => (Math.round((Number(n) || 0) * 1000) / 1000).toLocaleString('en-IN', { maximumFractionDigits: 3 }) + ' L';
+const num = (n) => Number(n || 0).toLocaleString('en-IN');
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const WD = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function fmtDate(s) { if (!s) return '—'; const [y, m, d] = s.slice(0, 10).split('-'); return `${d}/${m}/${y}`; }
+function fmtDay(s) { const [y, m, d] = s.split('-').map(Number); const dt = new Date(y, m - 1, d); return `${WD[dt.getDay()]} ${String(d).padStart(2, '0')} ${MONTHS[m - 1].slice(0, 3)}`; }
+function monthName(ym) { const [y, m] = ym.split('-').map(Number); return `${MONTHS[m - 1]} ${y}`; }
+function isoToLocalDate(iso) { return iso ? C.dateStr(new Date(iso)) : null; }
+function fmtDateTime(iso) { if (!iso) return '—'; const d = new Date(iso); return `${fmtDate(C.dateStr(d))} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+function daysAgo(iso) { const n = C.daysBetween(isoToLocalDate(iso), C.today()); return n <= 0 ? 'today' : n === 1 ? '1 day ago' : `${n} days ago`; }
+function parseNum(v) { const n = parseFloat(String(v == null ? '' : v).replace(',', '.').trim()); return Number.isFinite(n) ? n : NaN; }
+
+/* ---------- IndexedDB (the only place data lives) ---------- */
+const DB = {
+  db: null,
+  open() {
+    return new Promise((res, rej) => {
+      let rq;
+      try {
+        if (!('indexedDB' in window) || !window.indexedDB) throw new Error('This browser does not allow apps to store data.');
+        rq = indexedDB.open(APP.dbName, 1);
+      } catch (e) { return rej(e); }
+      rq.onupgradeneeded = () => {
+        const db = rq.result;
+        if (!db.objectStoreNames.contains('customers')) db.createObjectStore('customers', { keyPath: 'id' });
+        // No secondary indexes: lookups happen in memory, and writes stay fast for years of records.
+        // One-entry-per-customer-per-day is enforced by the app and checked on every restore.
+        if (!db.objectStoreNames.contains('records')) db.createObjectStore('records', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('payments')) db.createObjectStore('payments', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv', { keyPath: 'key' });
+      };
+      rq.onsuccess = () => {
+        DB.db = rq.result;
+        DB.db.onversionchange = () => { DB.db.close(); showFatal('The app was updated in another window. Close this window and open the app again.'); };
+        res(DB.db);
+      };
+      rq.onerror = () => rej(rq.error || new Error('Could not open storage.'));
+      rq.onblocked = () => rej(new Error('Storage is busy. Close other windows of this app and try again.'));
+    });
+  },
+  tx(stores, fn) {
+    return new Promise((res, rej) => {
+      let t;
+      try { t = DB.db.transaction(stores, 'readwrite'); } catch (e) { return rej(e); }
+      t.oncomplete = () => res();
+      t.onerror = () => rej(t.error || new Error('Save failed.'));
+      t.onabort = () => rej(t.error || new Error('Save was cancelled. Nothing was changed.'));
+      try { fn(t); } catch (e) { try { t.abort(); } catch (_) { /* already aborted */ } rej(e); }
+    });
+  },
+  getAll(store) {
+    return new Promise((res, rej) => {
+      const rq = DB.db.transaction(store, 'readonly').objectStore(store).getAll();
+      rq.onsuccess = () => res(rq.result || []);
+      rq.onerror = () => rej(rq.error);
+    });
+  },
+  async loadAll() {
+    const [customers, milk_records, payments, kv] = await Promise.all(['customers', 'records', 'payments', 'kv'].map((s) => DB.getAll(s)));
+    const m = {};
+    kv.forEach((x) => { m[x.key] = x.value; });
+    return { customers, milk_records, payments, settings: m.settings || {}, meta: m.meta || {} };
+  },
+  // Replace EVERYTHING in one transaction: either all of it is written, or nothing changes.
+  replaceAll(data, meta) {
+    return DB.tx(['customers', 'records', 'payments', 'kv'], (t) => {
+      ['customers', 'records', 'payments'].forEach((s) => t.objectStore(s).clear());
+      data.customers.forEach((c) => t.objectStore('customers').put(c));
+      data.milk_records.forEach((r) => t.objectStore('records').put(r));
+      data.payments.forEach((p) => t.objectStore('payments').put(p));
+      t.objectStore('kv').put({ key: 'settings', value: data.settings });
+      t.objectStore('kv').put({ key: 'meta', value: meta });
+    });
+  },
+  wipe() {
+    return DB.tx(['customers', 'records', 'payments', 'kv'], (t) => {
+      ['customers', 'records', 'payments', 'kv'].forEach((s) => t.objectStore(s).clear());
+    });
+  }
+};
+
+/* ---------- in-memory mirror of the database (always written to IndexedDB first) ---------- */
+const STORE_KEY = { customers: 'customers', records: 'milk_records', payments: 'payments' };
+const S = {
+  data: { customers: [], milk_records: [], payments: [] },
+  settings: { ...C.DEFAULT_SETTINGS },
+  meta: {},
+  idx: null,
+  ui: { dailyDate: C.today(), custFilter: 'active', custSearch: '', dailySearch: '', billsMonth: C.monthOf(C.today()), billsOnlyDue: false, reportTab: 'daily', reportDate: C.today(), reportMonth: C.monthOf(C.today()), reportCust: '' },
+  pending: null,     // parsed backup waiting for confirmation
+  lastBulk: null,    // for undo of "mark all taken"
+  installPrompt: null
+};
+function reindex() { S.idx = C.buildIndex(S.data); }
+function snapshot() { return { customers: S.data.customers, milk_records: S.data.milk_records, payments: S.data.payments, settings: S.settings }; }
+async function reloadFromDB() {
+  const all = await DB.loadAll();
+  S.data = { customers: all.customers, milk_records: all.milk_records, payments: all.payments };
+  S.settings = { ...C.DEFAULT_SETTINGS, ...all.settings };
+  S.meta = all.meta || {};
+  reindex();
+}
+function applyLocal(storeName, obj, remove) {
+  const arr = S.data[STORE_KEY[storeName]];
+  const i = arr.findIndex((x) => x.id === (remove ? obj : obj.id));
+  if (remove) { if (i >= 0) arr.splice(i, 1); } else if (i >= 0) arr[i] = obj; else arr.push(obj);
+}
+// Save changes. put: [[store, obj]], del: [[store, id]]. Marks "changed since last backup".
+async function commit(put = [], del = [], opts = {}) {
+  const stores = new Set(['kv']);
+  put.forEach(([s]) => stores.add(s)); del.forEach(([s]) => stores.add(s));
+  const meta = { ...S.meta, last_change_at: C.nowISO() };
+  if (opts.meta) Object.assign(meta, opts.meta);
+  await DB.tx([...stores], (t) => {
+    put.forEach(([s, o]) => t.objectStore(s).put(o));
+    del.forEach(([s, id]) => t.objectStore(s).delete(id));
+    t.objectStore('kv').put({ key: 'meta', value: meta });
+    if (opts.settings) t.objectStore('kv').put({ key: 'settings', value: opts.settings });
+  });
+  S.meta = meta;
+  if (opts.settings) S.settings = opts.settings;
+  put.forEach(([s, o]) => { if (s !== 'kv') applyLocal(s, o); });
+  del.forEach(([s, id]) => applyLocal(s, id, true));
+  reindex();
+}
+async function setMeta(patch) {
+  const meta = { ...S.meta, ...patch };
+  await DB.tx(['kv'], (t) => t.objectStore('kv').put({ key: 'meta', value: meta }));
+  S.meta = meta;
+}
+async function safe(fn) {
+  try { return await fn(); } catch (e) { console.error(e); toast('Could not save: ' + (e && e.message ? e.message : e)); return undefined; }
+}
+
+/* ---------- router ---------- */
+const VIEWS = {};
+const TAB_OF = { home: 'home', daily: 'daily', customers: 'customers', customer: 'customers', bills: 'bills', more: 'more', backup: 'more', reports: 'more', settings: 'more', about: 'more' };
+function route() {
+  const h = location.hash.replace(/^#\/?/, '');
+  const parts = h.split('/').filter(Boolean).map(decodeURIComponent);
+  const name = VIEWS[parts[0]] ? parts[0] : 'home';
+  return { name, params: parts.slice(1) };
+}
+function render() {
+  if (!S.idx) return;
+  const r = route();
+  $('#view').innerHTML = VIEWS[r.name](...r.params);
+  document.querySelectorAll('#tabs a').forEach((a) => a.classList.toggle('on', a.dataset.tab === TAB_OF[r.name]));
+  document.title = `${S.settings.farm_name || APP.name}`;
+}
+// go(path, then): navigate, then run `then` after the new screen has rendered
+function go(path, then) {
+  if (location.hash === '#/' + path) { render(); if (then) then(); }
+  else { S.afterNav = then || null; location.hash = '#/' + path; }
+}
+
+/* ---------- sheet (bottom modal), toast ---------- */
+let sheetLocked = false;
+function openSheet(html, { locked = false } = {}) {
+  sheetLocked = locked;
+  $('#sheet').innerHTML = `<div class="grab"></div>${html}`;
+  $('#sheetwrap').hidden = false;
+  document.body.style.overflow = 'hidden';
+  const f = $('#sheet [autofocus]');
+  if (f) setTimeout(() => f.focus(), 50);
+}
+function closeSheet(force) {
+  if (sheetLocked && !force) return;
+  sheetLocked = false;
+  $('#sheetwrap').hidden = true;
+  $('#sheet').innerHTML = '';
+  document.body.style.overflow = '';
+}
+let toastTimer = null;
+function toast(msg, action) {
+  const t = $('#toast');
+  t.innerHTML = `<span>${esc(msg)}</span>${action ? `<button data-act="${esc(action.act)}">${esc(action.label)}</button>` : ''}`;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, action ? 7000 : 3200);
+}
+function showFatal(msg) {
+  document.body.innerHTML = `<div class="fatal card"><h2>${esc(APP.name)}</h2><p><b>The app cannot store data in this browser.</b></p><p>${esc(msg)}</p>
+  <p class="muted">Open the app in Chrome (not a private/incognito window), or install it to your home screen. No data has been lost by this message.</p></div>`;
+}
+
+/* ---------- files: save + share ---------- */
+async function saveFile(filename, text, mime) {
+  // Inside claude.ai preview the page must ask the viewer to save
+  if (window.claude && typeof window.claude.use === 'function') {
+    try {
+      const d = await window.claude.use('downloads');
+      if (d) {
+        try { await d.save({ filename, data: text }); return 'saved'; }
+        catch (e) { if (e && e.code === 'declined') return 'declined'; throw e; }
+      }
+    } catch (e) { console.warn('downloads capability failed, falling back', e); }
+  }
+  const blob = new Blob([text], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.rel = 'noopener';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 5000);
+  return 'saved';
+}
+function canShareFiles() {
+  try {
+    if (!navigator.canShare || window.claude) return false;
+    return navigator.canShare({ files: [new File(['{}'], 'test.json', { type: 'application/json' })] });
+  } catch (e) { return false; }
+}
+async function shareText(text, title) {
+  if (navigator.share && !window.claude) {
+    try { await navigator.share({ title, text }); return; } catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(text); toast('Bill copied. Paste it in WhatsApp.'); return; } catch (e) { /* fall through */ }
+  openSheet(`<div class="sheet-h"><h2>${esc(title)}</h2><button class="iconbtn" data-act="closeSheet" aria-label="Close">×</button></div>
+    <p class="muted">Select and copy this text.</p><label class="f"><textarea id="sharetext" rows="12" readonly>${esc(text)}</textarea></label>`);
+  const ta = $('#sharetext'); if (ta) { ta.focus(); ta.select(); }
+}
+
+/* ---------- storage protection ---------- */
+async function requestPersist() {
+  try { if (navigator.storage && navigator.storage.persist) return await navigator.storage.persist(); } catch (e) { /* ignore */ }
+  return false;
+}
+async function isPersisted() {
+  try { if (navigator.storage && navigator.storage.persisted) return await navigator.storage.persisted(); } catch (e) { /* ignore */ }
+  return null;
+}
+
+/* ===== APP PART 2: screens ===== */
+const stat = (v, label, cls = '') => `<div class="stat ${cls}"><b>${v}</b><span>${esc(label)}</span></div>`;
+const byName = (a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' });
+const hasSample = () => S.data.customers.some((c) => c.is_sample);
+const realCount = () => S.data.customers.filter((c) => !c.is_sample).length;
+const tagsFor = (c) => `${c.is_sample ? ' <span class="tag sample">Sample</span>' : ''}${!c.active ? ' <span class="tag inactive">Inactive</span>' : ''}`;
+const monthBar = (ym, act, extra = '') => `<div class="datebar">
+  <button class="iconbtn" data-act="${act}" data-n="-1" ${extra} aria-label="Previous month">‹</button>
+  <div class="datepick">${monthName(ym)}</div>
+  <button class="iconbtn" data-act="${act}" data-n="1" ${extra} aria-label="Next month" ${ym >= C.monthOf(C.today()) ? 'disabled' : ''}>›</button></div>`;
+
+/* ---------- backup status (shown on Home and Backup) ---------- */
+function backupState() {
+  const last = S.meta.last_backup_at;
+  const hasData = S.data.customers.length > 0;
+  const changed = !last || (S.meta.last_change_at && S.meta.last_change_at > last);
+  const days = last ? C.daysBetween(isoToLocalDate(last), C.today()) : null;
+  const rd = Number(S.settings.backup_reminder_days) || 0;
+  const overdue = !!last && rd > 0 && days >= rd && changed;
+  return { last, hasData, changed, days, overdue };
+}
+function backupStatusBlock() {
+  const b = backupState();
+  const snoozed = S.meta.reminder_snooze === C.today();
+  if (!b.last) {
+    if (!b.hasData) return '';
+    return `<div class="notice warn"><b>Backup recommended — no backup created yet.</b>
+      <span>Your data is only on this phone. If the phone is lost or Chrome data is cleared, it is gone.</span>
+      <button class="btn primary sm" data-act="backupNow">Backup now</button></div>`;
+  }
+  if (b.overdue && !snoozed) {
+    return `<div class="notice warn"><b>Your last backup was ${b.days} days ago.</b><span>Create a backup to protect your data.</span>
+      <div class="btn-row"><button class="btn primary sm" data-act="backupNow">Backup now</button><button class="btn sm" data-act="snoozeReminder">Later</button></div></div>`;
+  }
+  return `<a class="backup-line" href="#/backup" style="text-decoration:none;color:inherit">
+    <span><i class="dot ${b.changed ? 'warn' : ''}"></i>Last backup: ${fmtDate(isoToLocalDate(b.last))} (${daysAgo(b.last)})</span>
+    <span class="muted small">${b.changed ? 'Changes since then' : 'Up to date'}</span></a>`;
+}
+function sampleBanner() {
+  if (!hasSample()) return '';
+  return `<div class="notice warn"><b>Sample data is loaded.</b><span>Customers marked SAMPLE are for practice. Clear them before real use.</span>
+    <button class="btn sm" data-act="clearSample">Clear sample data</button></div>`;
+}
+
+/* ---------- HOME ---------- */
+VIEWS.home = function () {
+  const t = C.today(), ym = C.monthOf(t);
+  const d = C.dayTotals(S.idx, t);
+  const m = C.monthTotals(S.idx, ym);
+  const dues = S.data.customers.map((c) => ({ c, bal: C.customerBalance(S.idx, c.id) })).filter((x) => x.bal > 0).sort((a, b) => b.bal - a.bal).slice(0, 5);
+  const label = S.settings.owner_label ? `${esc(S.settings.owner_label)}’s copy · ` : '';
+  return `
+  <header class="top"><div><div class="eyebrow">${label}${fmtDay(t)}</div><h1>${esc(S.settings.farm_name)}</h1></div></header>
+  ${backupStatusBlock()}
+  ${sampleBanner()}
+  ${S.data.customers.length === 0 ? `<div class="empty"><b>No customers yet</b><span>Add your first customer to start recording milk.</span><button class="btn primary" data-act="addCustomer">+ Add Customer</button></div>` : ''}
+  <section class="card">
+    <div class="card-h"><h2>Today’s milk</h2><span class="muted">${fmtDate(t)}</span></div>
+    <div class="stats">
+      ${stat(lit(d.liters), 'Total liters sold', 'hl')}${stat(money(d.sales), 'Total sales', 'hl')}
+      ${stat(num(d.served), 'Customers served')}${stat(num(d.notTaking), 'Customers not taking')}
+    </div>
+    ${d.pending ? `<div class="muted">${d.pending} customer${d.pending > 1 ? 's' : ''} not recorded yet today.</div>` : ''}
+    <a class="btn primary block big" href="#/daily" data-act="openToday">Record today’s milk</a>
+  </section>
+  <section class="card">
+    <div class="card-h"><h2>Monthly summary</h2><span class="muted">${monthName(ym)}</span></div>
+    <div class="stats">
+      ${stat(lit(m.liters), 'Total liters')}${stat(money(m.sales), 'Total sales')}
+      ${stat(money(m.collected), 'Total collected')}${stat(money(m.outstanding), 'Total outstanding (all dues)', 'due')}
+      ${stat(num(m.active), 'Active customers', 'wide')}
+    </div>
+  </section>
+  ${dues.length ? `<section class="card"><div class="card-h"><h2>Highest dues</h2><a href="#/bills" class="small">All bills</a></div>
+    <div class="list">${dues.map((x) => `<a class="row" href="#/customer/${esc(x.c.id)}"><div><div class="name">${esc(x.c.name)}${tagsFor(x.c)}</div></div><div class="r-right due-pos">${money(x.bal)}</div></a>`).join('')}</div></section>` : ''}
+  `;
+};
+
+/* ---------- DAILY ---------- */
+function dailyList(date) {
+  return S.data.customers.filter((c) => C.eligibleOn(c, date) || S.idx.recByKey.has(c.id + '|' + date)).sort(byName);
+}
+function dailyCard(c, date) {
+  const r = S.idx.recByKey.get(c.id + '|' + date);
+  const st = r ? r.status : 'none';
+  const price = r ? r.price_per_liter : C.priceOn(c, date);
+  const label = st === 'taken' ? 'Taken' : st === 'not_taken' ? 'Not taken' : 'No record';
+  let body = '';
+  if (st === 'taken') {
+    body = `<div class="qty">
+      <button class="iconbtn" data-act="qtyStep" data-c="${esc(c.id)}" data-d="-0.5" aria-label="Less milk">−</button>
+      <input id="q-${esc(c.id)}" type="text" inputmode="decimal" value="${r.quantity}" data-change="qtyInput" data-c="${esc(c.id)}" aria-label="Actual liters for ${esc(c.name)}">
+      <span class="unit">L</span>
+      <button class="iconbtn" data-act="qtyStep" data-c="${esc(c.id)}" data-d="0.5" aria-label="More milk">+</button>
+      <div class="amt">${money(r.amount)}</div></div>`;
+  } else if (st === 'not_taken') body = `<div class="qty-none"><span>0 L</span><b>₹0</b></div>`;
+  return `<article class="dcard st-${st}" id="dc-${esc(c.id)}">
+    <div class="dc-top"><div><h3>${esc(c.name)}${tagsFor(c)}</h3><div class="muted">Regular ${lit(c.regular_qty)} · ${money(price)}/L</div></div><span class="pill p-${st}">${label}</span></div>
+    <div class="seg">
+      <button class="seg-b taken ${st === 'taken' ? 'on' : ''}" data-act="setStatus" data-c="${esc(c.id)}" data-s="taken" aria-pressed="${st === 'taken'}">TAKEN</button>
+      <button class="seg-b not ${st === 'not_taken' ? 'on' : ''}" data-act="setStatus" data-c="${esc(c.id)}" data-s="not_taken" aria-pressed="${st === 'not_taken'}">NOT TAKEN</button>
+    </div>
+    ${body}
+    ${r ? `<div class="row-actions"><span class="muted small">${st === 'taken' && r.quantity !== c.regular_qty ? 'Changed from regular' : ''}</span><button class="link small" data-act="clearRecord" data-c="${esc(c.id)}">Clear entry</button></div>` : ''}
+  </article>`;
+}
+function dailyListHTML() {
+  const date = S.ui.dailyDate, q = S.ui.dailySearch.trim().toLowerCase();
+  const list = dailyList(date).filter((c) => !q || c.name.toLowerCase().includes(q));
+  if (!list.length) return `<div class="empty">${S.data.customers.length ? 'No matching customers for this day.' : 'No customers yet.'}<button class="btn primary" data-act="addCustomer">+ Add Customer</button></div>`;
+  return list.map((c) => dailyCard(c, date)).join('');
+}
+VIEWS.daily = function () {
+  const date = S.ui.dailyDate, t = C.today();
+  const d = C.dayTotals(S.idx, date);
+  const count = dailyList(date).length;
+  return `
+  <header class="top"><div><div class="eyebrow">Daily milk</div><h1>${date === t ? 'Today' : fmtDay(date)}</h1></div>
+    ${date !== t ? '<button class="btn sm" data-act="dayToday">Go to today</button>' : ''}</header>
+  <div class="datebar">
+    <button class="iconbtn" data-act="dayShift" data-n="-1" aria-label="Previous day">‹</button>
+    <label class="datepick"><span>${fmtDay(date)}<small>${fmtDate(date)} · tap to change</small></span>
+      <input type="date" id="dailyDate" value="${date}" max="${t}" data-change="dailyDate" aria-label="Choose date"></label>
+    <button class="iconbtn" data-act="dayShift" data-n="1" aria-label="Next day" ${date >= t ? 'disabled' : ''}>›</button>
+  </div>
+  <div class="sumrow">${stat(lit(d.liters), 'Liters', 'hl')}${stat(money(d.sales), 'Sales', 'hl')}${stat(`${d.served + d.notTaking}/${d.served + d.notTaking + d.pending}`, 'Recorded')}</div>
+  <div class="muted small">${d.served} taken · ${d.notTaking} not taken · ${d.pending} no record yet</div>
+  ${d.pending ? `<button class="btn block" data-act="markAllTaken">Mark all ${d.pending} remaining as TAKEN</button>` : ''}
+  ${count > 8 ? `<input class="search" id="dailySearch" type="search" placeholder="Search customer" value="${esc(S.ui.dailySearch)}" data-input="dailySearch">` : ''}
+  <div id="dailyList" class="list">${dailyListHTML()}</div>`;
+};
+
+/* ---------- CUSTOMERS ---------- */
+function custListHTML() {
+  const q = S.ui.custSearch.trim().toLowerCase(), f = S.ui.custFilter;
+  const list = S.data.customers.filter((c) => (f === 'all' || (f === 'active' ? c.active : !c.active)) &&
+    (!q || c.name.toLowerCase().includes(q) || (c.phone || '').replace(/\s/g, '').includes(q.replace(/\s/g, '')))).sort(byName);
+  if (!list.length) return `<div class="empty">${S.data.customers.length ? 'No customers match.' : 'No customers yet. Add your first customer.'}</div>`;
+  return list.map((c) => {
+    const bal = C.customerBalance(S.idx, c.id);
+    return `<a class="row" href="#/customer/${esc(c.id)}"><div><div class="name">${esc(c.name)}${tagsFor(c)}</div>
+      <div class="muted small">${lit(c.regular_qty)}/day · ${money(C.priceOn(c, C.today()))}/L${c.phone ? ' · ' + esc(c.phone) : ''}</div></div>
+      <div class="r-right"><div class="${bal > 0 ? 'due-pos' : bal < 0 ? 'due-neg' : 'muted'}">${bal === 0 ? 'No dues' : money(Math.abs(bal))}</div><div class="muted small">${bal > 0 ? 'due' : bal < 0 ? 'advance' : ''}</div></div></a>`;
+  }).join('');
+}
+VIEWS.customers = function () {
+  const f = S.ui.custFilter;
+  const n = (k) => S.data.customers.filter((c) => (k === 'all' ? true : k === 'active' ? c.active : !c.active)).length;
+  return `
+  <header class="top"><div><div class="eyebrow">${n('active')} active</div><h1>Customers</h1></div></header>
+  <button class="btn primary block big" data-act="addCustomer">+ Add Customer</button>
+  <input class="search" id="custSearch" type="search" placeholder="Search name or phone" value="${esc(S.ui.custSearch)}" data-input="custSearch">
+  <div class="chips">${['active', 'inactive', 'all'].map((k) => `<button class="chip ${f === k ? 'on' : ''}" data-act="custFilter" data-f="${k}">${k[0].toUpperCase() + k.slice(1)} (${n(k)})</button>`).join('')}</div>
+  <div id="custList" class="list">${custListHTML()}</div>`;
+};
+
+/* ---------- CUSTOMER PROFILE ---------- */
+VIEWS.customer = function (cid, ym) {
+  const c = S.idx.customers.get(cid);
+  if (!c) return `<div class="empty">Customer not found.<a class="btn" href="#/customers">Back to customers</a></div>`;
+  const t = C.today();
+  ym = ym && /^\d{4}-\d{2}$/.test(ym) ? ym : C.monthOf(t);
+  const m = C.customerMonth(S.idx, cid, ym, t);
+  const pays = (S.idx.paysByCust.get(cid) || []).filter((p) => C.monthOf(p.date) === ym).slice().reverse();
+  const last = ym === C.monthOf(t) ? t : `${ym}-${C.pad(C.daysInMonth(ym))}`;
+  const rows = [];
+  for (let d = last; d >= `${ym}-01`; d = C.addDays(d, -1)) {
+    const r = S.idx.recByKey.get(cid + '|' + d);
+    if (!r && d < c.start_date) continue;
+    rows.push(r
+      ? `<tr class="tap" data-act="editRecord" data-c="${esc(cid)}" data-date="${d}"><td>${fmtDay(d)}</td><td class="${r.status === 'taken' ? 'st-t' : 'st-n'}">${r.status === 'taken' ? 'Taken' : 'Not taken'}</td><td class="r">${lit(r.quantity)}</td><td class="r">${money(r.price_per_liter)}</td><td class="r">${money(r.amount)}</td></tr>`
+      : `<tr class="tap norec" data-act="editRecord" data-c="${esc(cid)}" data-date="${d}"><td>${fmtDay(d)}</td><td>No record</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>`);
+  }
+  const hist = C.sortedHistory(c);
+  return `
+  <a class="link" href="#/customers">‹ Customers</a>
+  <section class="card">
+    <div class="card-h"><h2 style="font-size:1.35rem">${esc(c.name)}${tagsFor(c)}</h2><span class="pill ${c.active ? 'p-taken' : 'p-none'}">${c.active ? 'Active' : 'Inactive'}</span></div>
+    <dl class="kv">
+      <dt>Phone</dt><dd>${c.phone ? `<a href="tel:${esc(c.phone.replace(/\s/g, ''))}">${esc(c.phone)}</a>` : '—'}</dd>
+      <dt>Address</dt><dd>${esc(c.address) || '—'}</dd>
+      <dt>Regular quantity</dt><dd>${lit(c.regular_qty)} / day</dd>
+      <dt>Current price</dt><dd>${money(C.priceOn(c, t))} / L</dd>
+      <dt>Customer since</dt><dd>${fmtDate(c.start_date)}</dd>
+      ${c.notes ? `<dt>Notes</dt><dd>${esc(c.notes)}</dd>` : ''}
+    </dl>
+    <div class="btn-row"><button class="btn" data-act="editCustomer" data-c="${esc(cid)}">Edit</button><button class="btn primary" data-act="addPayment" data-c="${esc(cid)}">Add Payment</button></div>
+  </section>
+  ${monthBar(ym, 'custMonth', `data-c="${esc(cid)}" data-ym="${ym}"`)}
+  <section class="card">
+    <div class="card-h"><h2>${monthName(ym)}</h2><button class="btn sm" data-act="shareBill" data-c="${esc(cid)}" data-ym="${ym}">Share bill</button></div>
+    <div class="stats">
+      ${stat(lit(m.liters), 'Total liters', 'hl')}${stat(money(m.bill), 'Total bill', 'hl')}
+      ${stat(num(m.daysTaken), 'Days taken')}${stat(num(m.daysNot), 'Days not taken')}
+      ${stat(money(m.paid), 'Paid this month')}${m.remaining < 0 ? stat(money(-m.remaining), 'Paid extra (covers old dues)') : stat(money(m.remaining), 'Remaining this month')}
+      ${stat(money(m.previous), 'Previous balance')}${stat(money(m.totalDue), 'Total due now', 'due')}
+    </div>
+    ${m.noRecord ? `<div class="muted small">${m.noRecord} day${m.noRecord > 1 ? 's' : ''} with no record (not counted as missed).</div>` : ''}
+  </section>
+  <section class="card">
+    <div class="card-h"><h2>Payments</h2><button class="btn sm" data-act="addPayment" data-c="${esc(cid)}">+ Add</button></div>
+    ${pays.length ? `<div class="list">${pays.map((p) => `<button class="row" data-act="editPayment" data-p="${esc(p.id)}"><div><div class="name">${money(p.amount)}</div><div class="muted small">${fmtDate(p.date)} · ${esc(p.method)}${p.notes ? ' · ' + esc(p.notes) : ''}</div></div><span class="chev"></span></button>`).join('')}</div>` : '<div class="muted">No payments this month.</div>'}
+  </section>
+  <section class="card">
+    <div class="card-h"><h2>Daily history</h2><span class="muted small">Tap a day to change it</span></div>
+    ${rows.length ? `<div class="tablewrap"><table><thead><tr><th>Date</th><th>Status</th><th class="r">Liters</th><th class="r">₹/L</th><th class="r">Amount</th></tr></thead><tbody>${rows.join('')}</tbody>
+    <tfoot><tr><td>Total</td><td></td><td class="r">${lit(m.liters)}</td><td></td><td class="r">${money(m.bill)}</td></tr></tfoot></table></div>` : '<div class="muted">Customer started after this month.</div>'}
+  </section>
+  ${hist.length > 1 ? `<section class="card"><h2>Price history</h2><div class="list">${hist.map((h) => `<div class="row" style="min-height:48px"><span>From ${fmtDate(h.from)}</span><b>${money(h.price)}/L</b></div>`).join('')}</div></section>` : ''}
+  `;
+};
+
+/* ---------- BILLS ---------- */
+VIEWS.bills = function (ym) {
+  if (ym && /^\d{4}-\d{2}$/.test(ym)) S.ui.billsMonth = ym;
+  ym = S.ui.billsMonth;
+  const t = C.today();
+  let tb = 0, tp = 0, tr = 0, tdue = 0;
+  const rows = S.data.customers.slice().sort(byName).map((c) => ({ c, m: C.customerMonth(S.idx, c.id, ym, t) }))
+    .filter((x) => x.m.daysTaken || x.m.daysNot || x.m.paid || x.m.totalDue || x.c.active);
+  rows.forEach((x) => { tb += x.m.bill; tp += x.m.paid; tr += x.m.remaining; if (x.m.totalDue > 0) tdue += x.m.totalDue; });
+  const shown = S.ui.billsOnlyDue ? rows.filter((x) => x.m.totalDue > 0) : rows;
+  return `
+  <header class="top"><div><div class="eyebrow">Monthly bills</div><h1>Bills</h1></div></header>
+  ${monthBar(ym, 'billsMonth')}
+  <section class="card"><div class="stats">
+    ${stat(money(C.round2(tb)), 'Total bill', 'hl')}${stat(money(C.round2(tp)), 'Total paid', 'hl')}
+    ${stat(money(C.round2(tr)), 'Remaining this month')}${stat(money(C.round2(tdue)), 'Total due (with old dues)', 'due')}
+  </div></section>
+  <div class="chips"><button class="chip ${!S.ui.billsOnlyDue ? 'on' : ''}" data-act="billsDue" data-v="0">All customers</button><button class="chip ${S.ui.billsOnlyDue ? 'on' : ''}" data-act="billsDue" data-v="1">Only with dues</button></div>
+  <div class="list">${shown.length ? shown.map((x) => `<a class="row" href="#/customer/${esc(x.c.id)}/${ym}"><div><div class="name">${esc(x.c.name)}${tagsFor(x.c)}</div>
+    <div class="muted small">${lit(x.m.liters)} · ${x.m.daysTaken} days · bill ${money(x.m.bill)} · paid ${money(x.m.paid)}</div></div>
+    <div class="r-right"><div class="${x.m.totalDue > 0 ? 'due-pos' : x.m.totalDue < 0 ? 'due-neg' : 'muted'}">${money(x.m.totalDue)}</div><div class="muted small">total due</div></div></a>`).join('') : '<div class="empty">Nothing to show for this month.</div>'}</div>`;
+};
+
+/* ---------- MORE ---------- */
+VIEWS.more = function () {
+  const b = backupState();
+  return `
+  <header class="top"><div><div class="eyebrow">${esc(S.settings.farm_name)}</div><h1>More</h1></div></header>
+  <div class="list menu">
+    <a class="row" href="#/backup"><div><div class="name">Backup &amp; Restore</div><div class="muted small">${b.last ? 'Last backup ' + fmtDate(isoToLocalDate(b.last)) : 'No backup yet — recommended'}</div></div><span class="chev"></span></a>
+    <a class="row" href="#/reports"><div><div class="name">Reports</div><div class="muted small">Daily, monthly and customer reports · CSV</div></div><span class="chev"></span></a>
+    <a class="row" href="#/settings"><div><div class="name">Settings</div><div class="muted small">Farm name, copy name, prices, reminders</div></div><span class="chev"></span></a>
+    <a class="row" href="#/about"><div><div class="name">About</div><div class="muted small">Version ${esc(APP.version)}</div></div><span class="chev"></span></a>
+    ${S.installPrompt ? `<button class="row" data-act="install"><div><div class="name">Install app on this phone</div><div class="muted small">Open it from the home screen like an app</div></div><span class="chev"></span></button>` : ''}
+    ${hasSample() ? `<button class="row" data-act="clearSample"><div><div class="name">Clear sample data</div><div class="muted small">Remove practice customers before real use</div></div><span class="chev"></span></button>` : ''}
+  </div>
+  <div class="notice"><b>Your data stays on this phone.</b><span>This app does not send your data to the developer or to any shared cloud. Make backups and keep the files safe.</span></div>`;
+};
+
+/* ---------- BACKUP & RESTORE ---------- */
+VIEWS.backup = function () {
+  const b = backupState();
+  return `
+  <a class="link" href="#/more">‹ More</a>
+  <header class="top"><div><div class="eyebrow">Keep your records safe</div><h1>Backup &amp; Restore</h1></div></header>
+  <div class="notice warn"><b>Your data is stored only on this phone.</b>
+    <span>The app does not back up your data to the developer or to a shared cloud. You are responsible for keeping backup files. Send each backup to yourself on WhatsApp or save it to Google Drive.</span></div>
+  <section class="card">
+    <dl class="kv">
+      <dt>Last backup</dt><dd>${b.last ? `${fmtDateTime(b.last)}` : '<span style="color:var(--warn)">Never</span>'}</dd>
+      ${S.meta.last_backup_file ? `<dt>File</dt><dd class="small">${esc(S.meta.last_backup_file)}</dd>` : ''}
+      <dt>Changes since</dt><dd>${b.last ? (b.changed ? 'Yes' : 'No') : '—'}</dd>
+      <dt>Last restore</dt><dd>${S.meta.last_restore_at ? fmtDateTime(S.meta.last_restore_at) : '—'}</dd>
+      ${S.meta.last_restore_at ? `<dt>Restored from</dt><dd>App ${esc(S.meta.last_restore_app_version || '?')} · backup v${esc(S.meta.last_restore_backup_version || '?')}</dd>` : ''}
+      <dt>Data on this phone</dt><dd>${num(S.data.customers.length)} customers · ${num(S.data.milk_records.length)} records · ${num(S.data.payments.length)} payments</dd>
+    </dl>
+    ${b.last ? '' : '<div class="notice warn"><b>Backup recommended — no backup created yet.</b></div>'}
+    <button class="btn primary block big" data-act="backupNow">BACKUP DATA</button>
+    ${canShareFiles() ? '<button class="btn block" data-act="shareBackup">Share backup file (WhatsApp / Drive)</button>' : ''}
+    <button class="btn block big" data-act="pickRestore">RESTORE DATA</button>
+    <p class="muted small">Restore replaces the data on this phone with a backup file. You will see what is inside the file and confirm before anything changes.</p>
+  </section>
+  <section class="card">
+    <h2>Moving to a new version of the app</h2>
+    <ol class="steps"><li>In the old app: tap <b>BACKUP DATA</b> and keep the file.</li><li>Open the new app.</li><li>Tap <b>RESTORE DATA</b> and choose that file.</li><li>Check the numbers and tap <b>Restore Backup</b>.</li><li>Older backups are upgraded automatically.</li></ol>
+  </section>
+  <details class="adv"><summary>Advanced</summary><div>
+    <p class="muted small"><b>Import / Merge</b> adds customers, milk records and payments from a backup without deleting anything here. Entries that already exist are skipped.</p>
+    <button class="btn block" data-act="pickMerge">Import / Merge Backup</button>
+    <p class="muted small"><b>Delete all local data</b> erases everything on this phone. This cannot be undone.</p>
+    <button class="btn ghost-danger block" data-act="deleteAll">Delete All Local Data</button>
+  </div></details>`;
+};
+
+/* ---------- REPORTS ---------- */
+function reportData() {
+  const tab = S.ui.reportTab, t = C.today();
+  if (tab === 'daily') {
+    const date = S.ui.reportDate;
+    const list = S.data.customers.filter((c) => C.eligibleOn(c, date) || S.idx.recByKey.has(c.id + '|' + date)).sort(byName);
+    const head = ['Customer', 'Status', 'Liters', 'Price/L', 'Amount'];
+    let L = 0, A = 0;
+    const rows = list.map((c) => {
+      const r = S.idx.recByKey.get(c.id + '|' + date);
+      if (r) { L += r.quantity; A += r.amount; }
+      return [c.name, r ? (r.status === 'taken' ? 'Taken' : 'Not taken') : 'No record', r ? r.quantity : '', r ? r.price_per_liter : '', r ? r.amount : ''];
+    });
+    return { title: `Daily report ${fmtDate(date)}`, file: `ardaas-daily-${date}.csv`, head, rows, foot: ['Total', '', C.roundL(L), '', C.round2(A)], num: [2, 3, 4] };
+  }
+  if (tab === 'monthly') {
+    const ym = S.ui.reportMonth;
+    const head = ['Customer', 'Liters', 'Days taken', 'Days not taken', 'Bill', 'Paid', 'Remaining', 'Previous', 'Total due'];
+    const tot = [0, 0, 0, 0, 0, 0, 0, 0];
+    const rows = S.data.customers.slice().sort(byName).map((c) => ({ c, m: C.customerMonth(S.idx, c.id, ym, t) }))
+      .filter((x) => x.m.daysTaken || x.m.daysNot || x.m.paid || x.m.totalDue || x.c.active)
+      .map(({ c, m }) => { const v = [m.liters, m.daysTaken, m.daysNot, m.bill, m.paid, m.remaining, m.previous, m.totalDue]; v.forEach((x, i) => { tot[i] += x; }); return [c.name, ...v]; });
+    return { title: `Monthly report ${monthName(ym)}`, file: `ardaas-monthly-${ym}.csv`, head, rows, foot: ['Total', ...tot.map((x, i) => (i === 0 ? C.roundL(x) : i < 3 ? x : C.round2(x)))], num: [1, 2, 3, 4, 5, 6, 7, 8] };
+  }
+  const cid = S.ui.reportCust || (S.data.customers.slice().sort(byName)[0] || {}).id;
+  const c = S.idx.customers.get(cid);
+  if (!c) return { title: 'Customer report', file: 'ardaas-customer.csv', head: [], rows: [], foot: null, num: [] };
+  const ym = S.ui.reportMonth;
+  const rows = (S.idx.recsByCust.get(cid) || []).filter((r) => C.monthOf(r.date) === ym)
+    .map((r) => [r.date, r.status === 'taken' ? 'Taken' : 'Not taken', r.quantity, r.price_per_liter, r.amount]);
+  const m = C.customerMonth(S.idx, cid, ym, t);
+  return { title: `${c.name} — ${monthName(ym)}`, file: `ardaas-${C.slug(c.name)}-${ym}.csv`, head: ['Date', 'Status', 'Liters', 'Price/L', 'Amount'], rows, foot: ['Total', `${m.daysTaken} taken / ${m.daysNot} not`, m.liters, '', m.bill], extra: m, cid, num: [2, 3, 4] };
+}
+VIEWS.reports = function () {
+  const tab = S.ui.reportTab;
+  const rd = reportData();
+  const fmtCell = (v, i) => (rd.num.includes(i) && v !== '' && typeof v === 'number' ? (rd.head[i].match(/Liters/) ? lit(v) : rd.head[i].match(/Days/) ? v : money(v)) : esc(i === 0 && /^\d{4}-/.test(v) ? fmtDay(v) : v));
+  const ctl = tab === 'daily'
+    ? `<label class="f">Date<input type="date" id="reportDate" value="${S.ui.reportDate}" max="${C.today()}" data-change="reportDate"></label>`
+    : `${tab === 'customer' ? `<label class="f">Customer<select id="reportCust" data-change="reportCust">${S.data.customers.slice().sort(byName).map((c) => `<option value="${esc(c.id)}" ${c.id === (S.ui.reportCust || rd.cid) ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>` : ''}
+       ${monthBar(S.ui.reportMonth, 'reportMonth')}`;
+  return `
+  <a class="link" href="#/more">‹ More</a>
+  <header class="top"><div><div class="eyebrow">Reports</div><h1>${esc(rd.title)}</h1></div></header>
+  <div class="chips">${[['daily', 'Daily'], ['monthly', 'Monthly'], ['customer', 'Customer']].map(([k, l]) => `<button class="chip ${tab === k ? 'on' : ''}" data-act="reportTab" data-t="${k}">${l}</button>`).join('')}</div>
+  ${ctl}
+  ${rd.extra ? `<div class="stats">${stat(money(rd.extra.paid), 'Paid')}${stat(money(rd.extra.totalDue), 'Total due', 'due')}</div>` : ''}
+  ${rd.rows.length ? `<div class="tablewrap"><table><thead><tr>${rd.head.map((h, i) => `<th class="${i ? 'r' : ''}">${esc(h)}</th>`).join('')}</tr></thead>
+    <tbody>${rd.rows.map((r) => `<tr>${r.map((v, i) => `<td class="${i ? 'r' : ''}">${fmtCell(v, i)}</td>`).join('')}</tr>`).join('')}</tbody>
+    ${rd.foot ? `<tfoot><tr>${rd.foot.map((v, i) => `<td class="${i ? 'r' : ''}">${v === '' ? '' : fmtCell(v, i)}</td>`).join('')}</tr></tfoot>` : ''}</table></div>
+    <button class="btn block" data-act="exportCSV">Download CSV</button>` : '<div class="empty">No entries for this report.</div>'}`;
+};
+
+/* ---------- SETTINGS ---------- */
+VIEWS.settings = function () {
+  const s = S.settings;
+  return `
+  <a class="link" href="#/more">‹ More</a>
+  <header class="top"><div><div class="eyebrow">This copy of the app</div><h1>Settings</h1></div></header>
+  <form class="card stack" data-form="settings">
+    <label class="f">Farm name<input id="set-farm" name="farm_name" value="${esc(s.farm_name)}" required maxlength="60"></label>
+    <label class="f">Name of this copy <span class="hint">Optional. Example: Manjot or Uncle. Used in backup file names so files don’t get mixed up.</span><input id="set-owner" name="owner_label" value="${esc(s.owner_label)}" maxlength="30" placeholder="e.g. Uncle"></label>
+    <div class="grid2">
+      <label class="f">Default ₹ per liter<input id="set-price" name="default_price" inputmode="decimal" value="${esc(s.default_price)}"></label>
+      <label class="f">Default liters/day<input id="set-qty" name="default_qty" inputmode="decimal" value="${esc(s.default_qty)}"></label>
+    </div>
+    <label class="f">Backup reminder<select id="set-remind" name="backup_reminder_days">${[[0, 'Off'], [3, 'After 3 days'], [7, 'After 7 days'], [14, 'After 14 days'], [30, 'After 30 days']].map(([v, l]) => `<option value="${v}" ${Number(s.backup_reminder_days) === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+    <button class="btn primary block" type="submit">Save settings</button>
+  </form>
+  <section class="card"><h2>Storage protection</h2><p class="muted small" id="persistState">Checking…</p>
+    <button class="btn sm" data-act="askPersist">Ask the phone to protect storage</button></section>
+  ${hasSample() ? `<section class="card"><h2>Sample data</h2><p class="muted small">Practice customers are marked SAMPLE.</p><button class="btn" data-act="clearSample">Clear Sample Data</button></section>` : `<section class="card"><h2>Sample data</h2><p class="muted small">Add 4 practice customers marked SAMPLE to learn the app. You can clear them later.</p><button class="btn" data-act="loadSample">Load sample data</button></section>`}`;
+};
+
+/* ---------- ABOUT ---------- */
+VIEWS.about = function () {
+  return `
+  <a class="link" href="#/more">‹ More</a>
+  <section class="card" style="align-items:flex-start">
+    <div class="eyebrow">About</div>
+    <h1 style="font-family:var(--font-display);margin:0">${esc(APP.name)}</h1>
+    <div style="font-size:1.1rem;font-weight:700">Version ${esc(APP.version)}</div>
+    <p style="margin:0">Data stored locally on this device.</p>
+    <dl class="kv" style="width:100%">
+      <dt>App version</dt><dd>${esc(APP.version)}</dd>
+      <dt>Data format (schema)</dt><dd>v${APP.schemaVersion}</dd>
+      <dt>Backup format</dt><dd>v${APP.backupVersion}</dd>
+      <dt>This copy</dt><dd>${esc(S.settings.owner_label) || 'Not named'}</dd>
+      <dt>Last backup</dt><dd>${S.meta.last_backup_at ? fmtDateTime(S.meta.last_backup_at) : 'Never'}</dd>
+      <dt>Last restore</dt><dd>${S.meta.last_restore_at ? fmtDateTime(S.meta.last_restore_at) + ` (backup v${esc(S.meta.last_restore_backup_version)})` : '—'}</dd>
+      <dt>Data first created</dt><dd>${S.meta.created_at ? fmtDate(isoToLocalDate(S.meta.created_at)) : '—'}</dd>
+    </dl>
+    <p class="muted small" style="margin:0">No account, login or internet is needed for daily use. Nothing is sent to the developer or to a shared cloud. Each phone keeps its own separate records.</p>
+  </section>`;
+};
+
+/* ===== APP PART 3: actions, forms, backup/restore flows, startup ===== */
+const ACTIONS = {}, CHANGES = {}, INPUTS = {}, FORMS = {};
+const F = (f, n) => f.elements.namedItem(n) || { value: '', checked: false };
+const closeBtn = '<button class="iconbtn" type="button" data-act="closeSheet" aria-label="Close">×</button>';
+
+/* ---------- general ---------- */
+ACTIONS.closeSheet = () => closeSheet();
+ACTIONS.openToday = () => { S.ui.dailyDate = C.today(); go('daily'); };
+ACTIONS.applyUpdate = () => { if (window.__waitingSW) window.__waitingSW.postMessage('SKIP_WAITING'); else location.reload(); };
+ACTIONS.snoozeReminder = async () => { await setMeta({ reminder_snooze: C.today() }); render(); };
+ACTIONS.install = async () => { const p = S.installPrompt; if (!p) return; p.prompt(); try { await p.userChoice; } catch (e) { /* ignore */ } S.installPrompt = null; render(); };
+ACTIONS.askPersist = async () => { const ok = await requestPersist(); toast(ok ? 'Storage is protected on this phone.' : 'The phone did not allow it. Installing the app to the home screen usually helps.'); showPersist(); };
+async function showPersist() {
+  const el = $('#persistState'); if (!el) return;
+  const p = await isPersisted();
+  el.textContent = p === true ? 'Protected: the phone will not clear this app’s data on its own when space is low.'
+    : p === false ? 'Not protected yet: the phone may clear data when storage is very low. Install the app to the home screen and keep regular backups.'
+      : 'This browser does not report storage protection. Keep regular backups.';
+}
+
+/* ---------- daily ---------- */
+ACTIONS.dayShift = (el) => { const n = Number(el.dataset.n); const d = C.addDays(S.ui.dailyDate, n); if (d > C.today()) return; S.ui.dailyDate = d; render(); };
+ACTIONS.dayToday = () => { S.ui.dailyDate = C.today(); render(); };
+CHANGES.dailyDate = (el) => { if (C.isDate(el.value) && el.value <= C.today()) { S.ui.dailyDate = el.value; render(); } };
+INPUTS.dailySearch = (el) => { S.ui.dailySearch = el.value; $('#dailyList').innerHTML = dailyListHTML(); };
+
+async function saveDay(cid, status, qty, priceOverride) {
+  const c = S.idx.customers.get(cid), date = S.ui.dailyDate;
+  const old = S.idx.recByKey.get(cid + '|' + date);
+  const price = priceOverride != null ? priceOverride : old ? old.price_per_liter : C.priceOn(c, date);
+  const rec = C.buildRecord({ id: old && old.id, created_at: old && old.created_at, customer_id: cid, date, status, quantity: qty, price });
+  await safe(() => commit([['records', rec]]));
+  render();
+}
+ACTIONS.setStatus = (el) => {
+  const cid = el.dataset.c, s = el.dataset.s, c = S.idx.customers.get(cid);
+  const old = S.idx.recByKey.get(cid + '|' + S.ui.dailyDate);
+  if (old && old.status === s) return;
+  const qty = s === 'taken' ? (old && old.status === 'taken' ? old.quantity : c.regular_qty || 1) : 0;
+  saveDay(cid, s, qty);
+};
+ACTIONS.qtyStep = (el) => {
+  const cid = el.dataset.c, r = S.idx.recByKey.get(cid + '|' + S.ui.dailyDate);
+  if (!r) return;
+  const q = Math.min(100, Math.max(0.25, C.roundL(r.quantity + Number(el.dataset.d))));
+  if (q === r.quantity) return;
+  saveDay(cid, 'taken', q);
+};
+CHANGES.qtyInput = (el) => {
+  const cid = el.dataset.c, q = parseNum(el.value);
+  if (!(q > 0) || q > 100) { toast('Enter liters between 0.25 and 100, or tap NOT TAKEN.'); render(); return; }
+  saveDay(cid, 'taken', q);
+};
+ACTIONS.clearRecord = async (el) => {
+  const cid = el.dataset.c, r = S.idx.recByKey.get(cid + '|' + S.ui.dailyDate);
+  if (!r) return;
+  await safe(() => commit([], [['records', r.id]]));
+  S.lastCleared = r;
+  render();
+  toast('Entry cleared (No record).', { act: 'undoClear', label: 'Undo' });
+};
+ACTIONS.undoClear = async () => { if (!S.lastCleared) return; const r = S.lastCleared; S.lastCleared = null; await safe(() => commit([['records', r]])); $('#toast').hidden = true; render(); };
+ACTIONS.markAllTaken = async () => {
+  const date = S.ui.dailyDate;
+  const recs = dailyList(date).filter((c) => C.eligibleOn(c, date) && !S.idx.recByKey.has(c.id + '|' + date))
+    .map((c) => C.buildRecord({ customer_id: c.id, date, status: 'taken', quantity: c.regular_qty || 1, price: C.priceOn(c, date) }));
+  if (!recs.length) return;
+  await safe(() => commit(recs.map((r) => ['records', r])));
+  S.lastBulk = recs.map((r) => r.id);
+  render();
+  toast(`Marked ${recs.length} customers as taken.`, { act: 'undoBulk', label: 'Undo' });
+};
+ACTIONS.undoBulk = async () => {
+  if (!S.lastBulk) return;
+  const ids = S.lastBulk; S.lastBulk = null;
+  await safe(() => commit([], ids.map((id) => ['records', id])));
+  $('#toast').hidden = true; render();
+};
+
+/* ---------- record editor (from customer history) ---------- */
+ACTIONS.editRecord = (el) => {
+  const cid = el.dataset.c, date = el.dataset.date, c = S.idx.customers.get(cid);
+  const r = S.idx.recByKey.get(cid + '|' + date);
+  const st = r ? r.status : 'none';
+  openSheet(`<div class="sheet-h"><h2>${esc(c.name)} · ${fmtDay(date)}</h2>${closeBtn}</div>
+  <form class="stack" data-form="record" data-c="${esc(cid)}" data-date="${date}">
+    <input type="hidden" name="status" id="rec-status" value="${st}">
+    <div class="seg seg3">
+      <button type="button" class="seg-b taken ${st === 'taken' ? 'on' : ''}" data-act="recStatus" data-s="taken">TAKEN</button>
+      <button type="button" class="seg-b not ${st === 'not_taken' ? 'on' : ''}" data-act="recStatus" data-s="not_taken">NOT TAKEN</button>
+      <button type="button" class="seg-b none ${st === 'none' ? 'on' : ''}" data-act="recStatus" data-s="none">NO RECORD</button>
+    </div>
+    <div class="grid2">
+      <label class="f">Actual liters<input id="rec-qty" name="qty" inputmode="decimal" value="${r && r.status === 'taken' ? r.quantity : c.regular_qty}"></label>
+      <label class="f">₹ per liter (that day)<input id="rec-price" name="price" inputmode="decimal" value="${r ? r.price_per_liter : C.priceOn(c, date)}"></label>
+    </div>
+    <p class="hint">Price is saved with this day only. Changing the customer’s price later will not change this day.</p>
+    <button class="btn primary block" type="submit">Save day</button>
+  </form>`);
+};
+ACTIONS.recStatus = (el) => {
+  $('#rec-status').value = el.dataset.s;
+  document.querySelectorAll('#sheet .seg-b').forEach((b) => b.classList.toggle('on', b === el));
+};
+FORMS.record = async (f) => {
+  const cid = f.dataset.c, date = f.dataset.date, st = F(f, 'status').value;
+  const old = S.idx.recByKey.get(cid + '|' + date);
+  if (st === 'none') { if (old) await safe(() => commit([], [['records', old.id]])); closeSheet(); render(); return; }
+  const qty = st === 'taken' ? parseNum(F(f, 'qty').value) : 0, price = parseNum(F(f, 'price').value);
+  if (st === 'taken' && !(qty > 0 && qty <= 100)) return toast('Enter liters between 0.25 and 100.');
+  if (!(price >= 0 && price <= 100000)) return toast('Enter a valid price per liter.');
+  const rec = C.buildRecord({ id: old && old.id, created_at: old && old.created_at, customer_id: cid, date, status: st, quantity: qty, price });
+  await safe(() => commit([['records', rec]]));
+  closeSheet(); render(); toast('Day saved.');
+};
+
+/* ---------- customers ---------- */
+INPUTS.custSearch = (el) => { S.ui.custSearch = el.value; $('#custList').innerHTML = custListHTML(); };
+ACTIONS.custFilter = (el) => { S.ui.custFilter = el.dataset.f; render(); };
+ACTIONS.custMonth = (el) => { const ym = C.addMonths(el.dataset.ym, Number(el.dataset.n)); if (ym > C.monthOf(C.today())) return; go(`customer/${el.dataset.c}/${ym}`); };
+function customerForm(c) {
+  const isNew = !c, s = S.settings, t = C.today();
+  c = c || { name: '', phone: '', address: '', regular_qty: s.default_qty, price_per_liter: s.default_price, start_date: t, notes: '', active: true };
+  const price = isNew ? c.price_per_liter : C.priceOn(c, t);
+  openSheet(`<div class="sheet-h"><h2>${isNew ? 'Add Customer' : 'Edit Customer'}</h2>${closeBtn}</div>
+  <form class="stack" data-form="customer" data-id="${isNew ? '' : esc(c.id)}">
+    <label class="f">Name <span class="req">*</span><input id="cf-name" name="name" value="${esc(c.name)}" required maxlength="60" autocomplete="off" ${isNew ? 'autofocus' : ''}></label>
+    <label class="f">Phone<input id="cf-phone" name="phone" type="tel" inputmode="tel" value="${esc(c.phone)}" maxlength="20"></label>
+    <label class="f">Address<input id="cf-address" name="address" value="${esc(c.address)}" maxlength="120"></label>
+    <div class="grid2">
+      <label class="f">Regular liters/day <span class="req">*</span><input id="cf-qty" name="regular_qty" inputmode="decimal" value="${esc(c.regular_qty)}" required></label>
+      <label class="f">₹ per liter <span class="req">*</span><input id="cf-price" name="price" inputmode="decimal" value="${esc(price)}" required></label>
+    </div>
+    ${isNew ? '' : `<div class="notice small"><b>Changing the price?</b>
+      <label class="f">New price applies from<input id="cf-eff" type="date" name="effective" value="${t}"></label>
+      <label class="check"><input type="checkbox" id="cf-apply" name="apply_existing"> Also update days already recorded from that date</label>
+      <span class="hint">Leave unticked to keep old days at the old price.</span></div>`}
+    <label class="f">Start date<input id="cf-start" type="date" name="start_date" value="${esc(c.start_date)}" required></label>
+    <label class="f">Notes<textarea id="cf-notes" name="notes" maxlength="300">${esc(c.notes)}</textarea></label>
+    <label class="check"><input type="checkbox" id="cf-active" name="active" ${c.active ? 'checked' : ''}> Active (shows on Daily milk)</label>
+    <button class="btn primary block big" type="submit">${isNew ? 'Add Customer' : 'Save changes'}</button>
+    ${isNew ? '' : `<button class="link" type="button" data-act="deleteCustomer" data-c="${esc(c.id)}" style="color:var(--danger)">Delete customer…</button>`}
+  </form>`);
+}
+ACTIONS.addCustomer = () => customerForm(null);
+ACTIONS.editCustomer = (el) => customerForm(S.idx.customers.get(el.dataset.c));
+FORMS.customer = async (f) => {
+  const id = f.dataset.id, t = C.nowISO();
+  const name = F(f, 'name').value.trim(), qty = parseNum(F(f, 'regular_qty').value), price = parseNum(F(f, 'price').value), start = F(f, 'start_date').value;
+  if (!name) return toast('Enter the customer name.');
+  if (!(qty >= 0 && qty <= 100)) return toast('Enter regular liters between 0 and 100.');
+  if (!(price > 0 && price <= 100000)) return toast('Enter the price per liter.');
+  if (!C.isDate(start)) return toast('Choose a start date.');
+  const base = { name, phone: F(f, 'phone').value.trim(), address: F(f, 'address').value.trim(), regular_qty: C.roundL(qty), start_date: start, notes: F(f, 'notes').value.trim(), active: F(f, 'active').checked, updated_at: t };
+  const put = [];
+  let cust;
+  if (!id) {
+    cust = { id: C.uid('c'), ...base, price_per_liter: C.round2(price), price_history: [{ from: start, price: C.round2(price) }], is_sample: false, created_at: t };
+  } else {
+    const old = S.idx.customers.get(id);
+    cust = { ...old, ...base };
+    const eff = C.isDate(F(f, 'effective').value) ? F(f, 'effective').value : C.today();
+    let hist = C.sortedHistory(old).map((h) => ({ ...h }));
+    if (C.round2(price) !== C.priceOn(old, eff)) {
+      hist = hist.filter((h) => h.from !== eff);
+      hist.push({ from: eff, price: C.round2(price) });
+      hist.sort((a, b) => (a.from < b.from ? -1 : 1));
+    }
+    // keep history consistent if the start date moved earlier
+    if (hist.length && hist[0].from > start) hist[0] = { ...hist[0], from: start };
+    cust.price_history = hist;
+    cust.price_per_liter = C.priceOn(cust, C.today());
+    if (F(f, 'apply_existing').checked) {
+      for (const r of S.idx.recsByCust.get(id) || []) {
+        if (r.date < eff) continue;
+        const p = C.priceOn(cust, r.date);
+        if (p !== r.price_per_liter) put.push(['records', C.buildRecord({ ...r, quantity: r.quantity, price: p })]);
+      }
+    }
+  }
+  put.unshift(['customers', cust]);
+  await safe(() => commit(put));
+  closeSheet();
+  toast(id ? `Saved${put.length > 1 ? ` · ${put.length - 1} days repriced` : ''}.` : `${name} added.`);
+  if (!id) go(`customer/${cust.id}`); else render();
+};
+ACTIONS.deleteCustomer = (el) => {
+  const c = S.idx.customers.get(el.dataset.c);
+  const nr = (S.idx.recsByCust.get(c.id) || []).length, np = (S.idx.paysByCust.get(c.id) || []).length;
+  if (nr || np) {
+    openSheet(`<div class="sheet-h"><h2>Keep ${esc(c.name)}?</h2>${closeBtn}</div>
+      <p>This customer has ${nr} milk records and ${np} payments. Deleting would remove their history from bills.</p>
+      <p>Mark the customer <b>Inactive</b> instead. Inactive customers stay in history and reports but stop showing on Daily milk.</p>
+      <button class="btn primary block" data-act="makeInactive" data-c="${esc(c.id)}">Mark as Inactive</button>`);
+    return;
+  }
+  openSheet(`<div class="sheet-h"><h2>Delete ${esc(c.name)}?</h2>${closeBtn}</div><p>This customer has no records or payments.</p>
+    <button class="btn danger block" data-act="confirmDeleteCustomer" data-c="${esc(c.id)}">Delete customer</button>`);
+};
+ACTIONS.makeInactive = async (el) => { const c = S.idx.customers.get(el.dataset.c); await safe(() => commit([['customers', { ...c, active: false, updated_at: C.nowISO() }]])); closeSheet(); render(); toast('Marked inactive.'); };
+ACTIONS.confirmDeleteCustomer = async (el) => { await safe(() => commit([], [['customers', el.dataset.c]])); closeSheet(); go('customers'); toast('Customer deleted.'); };
+
+/* ---------- payments ---------- */
+function paymentForm(cid, p) {
+  const c = S.idx.customers.get(cid);
+  const bal = C.customerBalance(S.idx, cid);
+  p = p || { date: C.today(), amount: '', method: 'Cash', notes: '' };
+  openSheet(`<div class="sheet-h"><h2>${p.id ? 'Edit payment' : 'Add Payment'}</h2>${closeBtn}</div>
+  <p class="muted" style="margin:0">${esc(c.name)} · current due <b class="${bal > 0 ? 'due-pos' : ''}">${money(bal)}</b></p>
+  <form class="stack" data-form="payment" data-c="${esc(cid)}" data-id="${p.id ? esc(p.id) : ''}">
+    <label class="f">Amount (₹) <span class="req">*</span><input id="pf-amount" name="amount" inputmode="decimal" value="${esc(p.amount)}" required ${p.id ? '' : 'autofocus'}></label>
+    ${!p.id && bal > 0 ? `<button type="button" class="chip" data-act="payFull" data-v="${bal}">Full due ${money(bal)}</button>` : ''}
+    <label class="f">Date<input id="pf-date" type="date" name="date" value="${esc(p.date)}" max="${C.today()}" required></label>
+    <input type="hidden" name="method" id="pf-method" value="${esc(p.method)}">
+    <div class="f"><span>Payment method</span><div class="chips">${C.METHODS.map((m) => `<button type="button" class="chip ${p.method === m ? 'on' : ''}" data-act="payMethod" data-m="${m}">${m}</button>`).join('')}</div></div>
+    <label class="f">Notes<input id="pf-notes" name="notes" value="${esc(p.notes)}" maxlength="120"></label>
+    <button class="btn primary block big" type="submit">${p.id ? 'Save payment' : 'Add Payment'}</button>
+    ${p.id ? `<button type="button" class="link" style="color:var(--danger)" data-act="deletePayment" data-p="${esc(p.id)}">Delete this payment</button>` : ''}
+  </form>`);
+}
+ACTIONS.addPayment = (el) => paymentForm(el.dataset.c);
+ACTIONS.editPayment = (el) => { const p = S.data.payments.find((x) => x.id === el.dataset.p); if (p) paymentForm(p.customer_id, p); };
+ACTIONS.payFull = (el) => { $('#pf-amount').value = el.dataset.v; };
+ACTIONS.payMethod = (el) => { $('#pf-method').value = el.dataset.m; document.querySelectorAll('#sheet [data-act=payMethod]').forEach((b) => b.classList.toggle('on', b === el)); };
+FORMS.payment = async (f) => {
+  const amount = parseNum(F(f, 'amount').value), date = F(f, 'date').value, id = f.dataset.id;
+  if (!(amount > 0 && amount < 10000000)) return toast('Enter the amount received.');
+  if (!C.isDate(date)) return toast('Choose the payment date.');
+  const old = id ? S.data.payments.find((x) => x.id === id) : null, t = C.nowISO();
+  const p = { id: id || C.uid('p'), customer_id: f.dataset.c, date, amount: C.round2(amount), method: C.METHODS.includes(F(f, 'method').value) ? F(f, 'method').value : 'Other', notes: F(f, 'notes').value.trim(), created_at: old ? old.created_at : t, updated_at: t };
+  await safe(() => commit([['payments', p]]));
+  closeSheet(); render(); toast(`Payment of ${money(p.amount)} saved.`);
+};
+ACTIONS.deletePayment = (el) => {
+  const p = S.data.payments.find((x) => x.id === el.dataset.p);
+  openSheet(`<div class="sheet-h"><h2>Delete payment?</h2>${closeBtn}</div><p>${money(p.amount)} on ${fmtDate(p.date)} (${esc(p.method)}) will be removed.</p>
+    <button class="btn danger block" data-act="confirmDeletePayment" data-p="${esc(p.id)}">Delete payment</button>`);
+};
+ACTIONS.confirmDeletePayment = async (el) => { await safe(() => commit([], [['payments', el.dataset.p]])); closeSheet(); render(); toast('Payment deleted.'); };
+
+/* ---------- bills ---------- */
+ACTIONS.billsMonth = (el) => { const ym = C.addMonths(S.ui.billsMonth, Number(el.dataset.n)); if (ym > C.monthOf(C.today())) return; S.ui.billsMonth = ym; go('bills'); };
+ACTIONS.billsDue = (el) => { S.ui.billsOnlyDue = el.dataset.v === '1'; render(); };
+ACTIONS.shareBill = (el) => {
+  const c = S.idx.customers.get(el.dataset.c), ym = el.dataset.ym;
+  const m = C.customerMonth(S.idx, c.id, ym);
+  const prices = [...new Set((S.idx.recsByCust.get(c.id) || []).filter((r) => C.monthOf(r.date) === ym && r.status === 'taken').map((r) => r.price_per_liter))];
+  const lines = [
+    `*${S.settings.farm_name}*`, `Milk bill — ${monthName(ym)}`, '', `Customer: ${c.name}`,
+    `Milk: ${lit(m.liters)} (${m.daysTaken} days)`, prices.length ? `Rate: ${prices.map((p) => money(p) + '/L').join(', ')}` : null,
+    `Bill: ${money(m.bill)}`, m.previous ? `Previous balance: ${money(m.previous)}` : null, `Paid: ${money(m.paid)}`, `*Total due: ${money(m.totalDue)}*`
+  ].filter((x) => x !== null);
+  shareText(lines.join('\n'), `Bill — ${c.name}`);
+};
+
+/* ---------- reports ---------- */
+ACTIONS.reportTab = (el) => { S.ui.reportTab = el.dataset.t; render(); };
+ACTIONS.reportMonth = (el) => { const ym = C.addMonths(S.ui.reportMonth, Number(el.dataset.n)); if (ym > C.monthOf(C.today())) return; S.ui.reportMonth = ym; render(); };
+CHANGES.reportDate = (el) => { if (C.isDate(el.value)) { S.ui.reportDate = el.value; render(); } };
+CHANGES.reportCust = (el) => { S.ui.reportCust = el.value; render(); };
+ACTIONS.exportCSV = async () => {
+  const rd = reportData();
+  const rows = [rd.head, ...rd.rows]; if (rd.foot) rows.push(rd.foot);
+  const res = await saveFile(rd.file, C.toCSV(rows), 'text/csv');
+  if (res === 'saved') toast(`Saved ${rd.file}`);
+};
+
+/* ---------- settings + sample data ---------- */
+FORMS.settings = async (f) => {
+  const s = { ...S.settings, farm_name: F(f, 'farm_name').value.trim() || APP.name, owner_label: F(f, 'owner_label').value.trim() };
+  const dp = parseNum(F(f, 'default_price').value), dq = parseNum(F(f, 'default_qty').value);
+  if (dp > 0) s.default_price = C.round2(dp);
+  if (dq >= 0) s.default_qty = C.roundL(dq);
+  s.backup_reminder_days = Number(F(f, 'backup_reminder_days').value) || 0;
+  await safe(() => commit([], [], { settings: s }));
+  toast('Settings saved.'); render(); showPersist();
+};
+ACTIONS.loadSample = async () => {
+  const d = C.makeSampleData();
+  await safe(() => commit([...d.customers.map((c) => ['customers', c]), ...d.milk_records.map((r) => ['records', r]), ...d.payments.map((p) => ['payments', p])]));
+  toast('Sample data loaded.'); go('home');
+};
+ACTIONS.clearSample = () => {
+  const ids = new Set(S.data.customers.filter((c) => c.is_sample).map((c) => c.id));
+  const nr = S.data.milk_records.filter((r) => ids.has(r.customer_id)).length, np = S.data.payments.filter((p) => ids.has(p.customer_id)).length;
+  openSheet(`<div class="sheet-h"><h2>Clear sample data?</h2>${closeBtn}</div>
+    <p>This removes ${ids.size} SAMPLE customers, ${nr} of their milk records and ${np} payments. Your own customers are not touched.</p>
+    <button class="btn danger block" data-act="confirmClearSample">Clear Sample Data</button>`);
+};
+ACTIONS.confirmClearSample = async () => {
+  const ids = new Set(S.data.customers.filter((c) => c.is_sample).map((c) => c.id));
+  const del = [...[...ids].map((id) => ['customers', id]), ...S.data.milk_records.filter((r) => ids.has(r.customer_id)).map((r) => ['records', r.id]), ...S.data.payments.filter((p) => ids.has(p.customer_id)).map((p) => ['payments', p.id])];
+  await safe(() => commit([], del));
+  closeSheet(); toast('Sample data cleared.'); render();
+};
+
+/* ---------- BACKUP ---------- */
+function makeBackupText() {
+  const b = C.buildBackup(snapshot(), S.settings.owner_label);
+  return { b, text: C.serializeBackup(b), filename: C.backupFilename(S.settings.owner_label) };
+}
+async function doBackup() {
+  const { b, text, filename } = makeBackupText();
+  const res = await saveFile(filename, text, 'application/json');
+  if (res !== 'saved') { toast('Backup was not saved.'); return false; }
+  await setMeta({ last_backup_at: b.created_at, last_backup_file: filename, last_backup_version: b.backup_version });
+  return { filename, b };
+}
+ACTIONS.backupNow = async () => {
+  const r = await doBackup(); if (!r) return;
+  render();
+  openSheet(`<div class="sheet-h"><h2>Backup created</h2>${closeBtn}</div>
+    <div class="notice ok"><b>${esc(r.filename)}</b><span>${num(r.b.counts.customers)} customers · ${num(r.b.counts.milk_records)} milk records · ${num(r.b.counts.payments)} payments</span></div>
+    <p>The file is in your phone’s <b>Downloads</b> folder. Keep a copy somewhere safe, for example send it to yourself on WhatsApp or upload it to Google Drive.</p>
+    ${canShareFiles() ? '<button class="btn primary block" data-act="shareBackup">Share the backup file now</button>' : ''}
+    <button class="btn block" data-act="closeSheet">Done</button>`);
+};
+ACTIONS.shareBackup = async () => {
+  const { b, text, filename } = makeBackupText();
+  try {
+    const file = new File([text], filename, { type: 'application/json' });
+    await navigator.share({ files: [file], title: filename });
+    await setMeta({ last_backup_at: b.created_at, last_backup_file: filename, last_backup_version: b.backup_version });
+    closeSheet(); render(); toast('Backup shared.');
+  } catch (e) { if (!e || e.name !== 'AbortError') toast('Sharing is not available. Use BACKUP DATA instead.'); }
+};
+
+/* ---------- RESTORE / MERGE: pick and read the file ---------- */
+ACTIONS.pickRestore = () => { S.fileMode = 'restore'; const i = $('#filepick'); i.value = ''; i.click(); };
+ACTIONS.pickMerge = () => { S.fileMode = 'merge'; const i = $('#filepick'); i.value = ''; i.click(); };
+async function onFilePicked(file) {
+  if (!file) return;
+  if (file.size > 200 * 1024 * 1024) return showRestoreError({ message: 'This file is too large to be an Ardaas backup.', details: [] });
+  let text;
+  try { text = await file.text(); } catch (e) { return showRestoreError({ message: 'The file could not be read.', details: [] }); }
+  const parsed = C.parseBackup(text);
+  if (!parsed.ok) return showRestoreError(parsed);
+  S.pending = { ...parsed, fileName: file.name };
+  if (S.fileMode === 'merge') showMergeConfirm(); else showRestoreConfirm();
+}
+function showRestoreError(p) {
+  S.pending = null;
+  openSheet(`<div class="sheet-h"><h2>Backup not restored</h2>${closeBtn}</div>
+    <div class="notice danger"><b>${esc(p.message)}</b>${p.details && p.details.length ? `<ul style="margin:0;padding-left:18px">${p.details.slice(0, 8).map((d) => `<li>${esc(d)}</li>`).join('')}${p.details.length > 8 ? `<li>…and ${p.details.length - 8} more problems</li>` : ''}</ul>` : ''}</div>
+    <div class="notice ok"><b>Your current data has not been changed.</b></div>
+    <button class="btn block" data-act="closeSheet">OK</button>`);
+}
+function backupInfoList(info, fileName) {
+  return `<dl class="kv">
+    <dt>File</dt><dd class="small">${esc(fileName)}</dd>
+    <dt>Backup created</dt><dd>${info.created_at ? fmtDateTime(info.created_at) : '—'}</dd>
+    ${info.owner_label ? `<dt>Copy name</dt><dd>${esc(info.owner_label)}</dd>` : ''}
+    <dt>Customers</dt><dd>${num(info.counts.customers)}</dd>
+    <dt>Milk records</dt><dd>${num(info.counts.milk_records)}</dd>
+    <dt>Payments</dt><dd>${num(info.counts.payments)}</dd>
+    <dt>Application version</dt><dd>${esc(info.app_version)}</dd>
+    <dt>Data format</dt><dd>${info.status === 'current' ? `v${info.schema_version} (current)` : `v${info.schema_version} → upgraded to v${info.target_schema}`}</dd>
+  </dl>`;
+}
+function ownerMismatch(info) {
+  const mine = (S.settings.owner_label || '').trim().toLowerCase(), theirs = (info.owner_label || '').trim().toLowerCase();
+  return mine && theirs && mine !== theirs
+    ? `<div class="notice warn"><b>Check the file.</b><span>This backup belongs to “${esc(info.owner_label)}”, but this copy is named “${esc(S.settings.owner_label)}”.</span></div>` : '';
+}
+function showRestoreConfirm(backedUp) {
+  const p = S.pending, cur = S.data;
+  const hasData = cur.customers.length || cur.milk_records.length || cur.payments.length;
+  openSheet(`<div class="sheet-h"><h2>Restore Backup</h2>${closeBtn}</div>
+    ${p.info.status === 'older' ? '<div class="notice ok"><b>Older backup detected.</b><span>Its data will be upgraded to work with this version of the app.</span></div>' : ''}
+    ${backupInfoList(p.info, p.fileName)}
+    ${ownerMismatch(p.info)}
+    ${p.warnings.length ? `<div class="notice small">${p.warnings.map(esc).join('<br>')}</div>` : ''}
+    ${hasData ? `<div class="notice danger"><b>WARNING</b><span>Restoring this backup will replace the current local data.</span>
+      <span>Your current data will be replaced by the selected backup: ${num(cur.customers.length)} customers, ${num(cur.milk_records.length)} milk records, ${num(cur.payments.length)} payments.</span></div>` : '<div class="notice">This phone has no data yet.</div>'}
+    ${backedUp ? `<div class="notice ok"><b>Current data backed up</b><span>${esc(backedUp)}</span></div>` : ''}
+    <div class="btn-col">
+      ${hasData ? `<button class="btn block" data-act="backupBeforeRestore">Backup Current Data First</button>` : ''}
+      <button class="btn danger block big" data-act="confirmRestore">Restore Backup</button>
+      <button class="btn block" data-act="cancelPending">Cancel</button>
+    </div>`, { locked: true });
+}
+ACTIONS.cancelPending = () => { S.pending = null; closeSheet(true); };
+ACTIONS.backupBeforeRestore = async () => { const r = await doBackup(); if (r) showRestoreConfirm(r.filename); };
+ACTIONS.confirmRestore = async () => {
+  const p = S.pending; if (!p) return;
+  const t = C.nowISO();
+  const meta = {
+    ...S.meta, onboarded: true, created_at: S.meta.created_at || t, schema_version: APP.schemaVersion,
+    last_restore_at: t, last_restore_backup_version: p.info.backup_version, last_restore_app_version: p.info.app_version,
+    last_restore_schema: p.info.schema_version, last_restore_file: p.fileName,
+    // the file just restored is itself a complete backup of what is now on the phone
+    last_backup_at: p.info.created_at || t, last_backup_file: p.fileName, last_change_at: p.info.created_at || t
+  };
+  openSheet(`<h2>Restoring…</h2><p>Saving ${num(p.info.counts.milk_records)} milk records. Keep the app open — this can take a little while for large backups.</p>`, { locked: true });
+  try {
+    await DB.replaceAll(p.data, meta);
+  } catch (e) {
+    console.error(e);
+    S.pending = null;
+    await reloadFromDB();
+    return showRestoreError({ message: 'Restore failed while saving. Your current data has not been changed.', details: [String(e && e.message || e)] });
+  }
+  S.pending = null;
+  await reloadFromDB();
+  closeSheet(true);
+  go('home');
+  toast(`Restored ${num(S.data.customers.length)} customers and ${num(S.data.milk_records.length)} milk records.`);
+};
+function showMergeConfirm(backedUp) {
+  const p = S.pending;
+  const plan = C.planMerge(S.data, p.data);
+  S.pendingPlan = plan;
+  const a = plan.add, k = plan.skip;
+  const nothing = !a.customers.length && !a.milk_records.length && !a.payments.length;
+  openSheet(`<div class="sheet-h"><h2>Import / Merge Backup</h2>${closeBtn}</div>
+    ${backupInfoList(p.info, p.fileName)}
+    ${ownerMismatch(p.info)}
+    <div class="notice"><b>What will happen</b>
+      <span>Add: ${num(a.customers.length)} customers · ${num(a.milk_records.length)} milk records · ${num(a.payments.length)} payments</span>
+      <span>Skip (already here): ${num(k.customers)} customers · ${num(k.milk_records)} milk records · ${num(k.payments)} payments</span>
+      <span>Nothing on this phone will be deleted or changed.</span></div>
+    ${plan.sameName.length ? `<div class="notice warn"><b>Possible duplicate customers</b><span>These names already exist here but are different customers in the file: ${plan.sameName.map(esc).join(', ')}. They will be added as separate customers.</span></div>` : ''}
+    ${backedUp ? `<div class="notice ok"><b>Current data backed up</b><span>${esc(backedUp)}</span></div>` : ''}
+    <div class="btn-col">
+      <button class="btn block" data-act="backupBeforeMerge">Backup Current Data First</button>
+      <button class="btn primary block big" data-act="confirmMerge" ${nothing ? 'disabled' : ''}>${nothing ? 'Nothing new to add' : 'Merge into this phone'}</button>
+      <button class="btn block" data-act="cancelPending">Cancel</button>
+    </div>`, { locked: true });
+}
+ACTIONS.backupBeforeMerge = async () => { const r = await doBackup(); if (r) showMergeConfirm(r.filename); };
+ACTIONS.confirmMerge = async () => {
+  const plan = S.pendingPlan; if (!plan) return;
+  const a = plan.add;
+  openSheet('<h2>Merging…</h2><p>Keep the app open.</p>', { locked: true });
+  try {
+    await commit([...a.customers.map((c) => ['customers', c]), ...a.milk_records.map((r) => ['records', r]), ...a.payments.map((p) => ['payments', p])]);
+  } catch (e) {
+    S.pending = null; await reloadFromDB();
+    return showRestoreError({ message: 'Merge failed. Nothing was added and your current data has not been changed.', details: [String(e && e.message || e)] });
+  }
+  S.pending = null; S.pendingPlan = null;
+  closeSheet(true); render();
+  toast(`Added ${a.customers.length} customers, ${a.milk_records.length} records, ${a.payments.length} payments.`);
+};
+
+/* ---------- DELETE ALL ---------- */
+ACTIONS.deleteAll = (el, e, backedUp) => {
+  openSheet(`<div class="sheet-h"><h2 style="color:var(--danger)">DELETE ALL DATA</h2>${closeBtn}</div>
+    <p>This permanently erases <b>all</b> customers, milk records, payments and settings on this phone: ${num(S.data.customers.length)} customers, ${num(S.data.milk_records.length)} records, ${num(S.data.payments.length)} payments. It cannot be undone.</p>
+    ${backedUp ? `<div class="notice ok"><b>Backup saved</b><span>${esc(backedUp)}</span></div>` : '<div class="notice warn"><b>Make a backup first.</b><span>Without a backup file this data is gone forever.</span></div>'}
+    <button class="btn primary block" data-act="backupBeforeDelete">Backup Data First</button>
+    <label class="f">Type DELETE to confirm<input id="del-confirm" autocomplete="off" autocapitalize="characters" data-input="delConfirm" placeholder="DELETE"></label>
+    <button class="btn danger block big" id="del-go" data-act="confirmDeleteAll" disabled>Delete all data</button>`);
+};
+ACTIONS.backupBeforeDelete = async () => { const r = await doBackup(); if (r) ACTIONS.deleteAll(null, null, r.filename); };
+INPUTS.delConfirm = (el) => { $('#del-go').disabled = el.value.trim() !== 'DELETE'; };
+ACTIONS.confirmDeleteAll = async () => {
+  if ((($('#del-confirm') || {}).value || '').trim() !== 'DELETE') return;
+  try { await DB.wipe(); } catch (e) { return toast('Delete failed: ' + e.message); }
+  await reloadFromDB();
+  closeSheet(true);
+  toast('All local data deleted.');
+  go('home', showOnboarding);
+};
+
+/* ---------- first run ---------- */
+function showOnboarding() {
+  openSheet(`<h2>Welcome to ${esc(APP.name)}</h2>
+    <p style="margin:0">This app keeps milk records <b>only on this phone</b>. No login and no internet are needed for daily use. Another phone using the app keeps its own separate records.</p>
+    <label class="f">Name for this copy <span class="hint">Optional — e.g. Manjot or Uncle. Helps keep backup files apart.</span><input id="ob-owner" maxlength="30" placeholder="Optional"></label>
+    <div class="btn-col">
+      <button class="btn primary block big" data-act="obStart" data-mode="fresh">Start with my own customers</button>
+      <button class="btn block" data-act="obStart" data-mode="sample">Try it with sample data first</button>
+      <button class="btn block" data-act="obStart" data-mode="restore">I have a backup file — restore it</button>
+    </div>`, { locked: true });
+}
+ACTIONS.obStart = async (el) => {
+  const mode = el.dataset.mode, owner = ($('#ob-owner') || {}).value || '';
+  const settings = { ...S.settings, owner_label: owner.trim() };
+  await safe(() => commit([], [], { settings, meta: { onboarded: true, created_at: S.meta.created_at || C.nowISO(), schema_version: APP.schemaVersion } }));
+  requestPersist();
+  closeSheet(true);
+  if (mode === 'sample') return ACTIONS.loadSample();
+  if (mode === 'restore') { go('backup'); return ACTIONS.pickRestore(); }
+  go('customers', () => ACTIONS.addCustomer());
+};
+
+/* ---------- event wiring ---------- */
+function wire() {
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-act]');
+    if (el && ACTIONS[el.dataset.act]) {
+      if (el.disabled) return;
+      e.preventDefault();
+      Promise.resolve(ACTIONS[el.dataset.act](el, e)).catch((err) => { console.error(err); toast('Something went wrong: ' + err.message); });
+    }
+  });
+  document.addEventListener('change', (e) => { const el = e.target.closest('[data-change]'); if (el && CHANGES[el.dataset.change]) CHANGES[el.dataset.change](el, e); });
+  document.addEventListener('input', (e) => { const el = e.target.closest('[data-input]'); if (el && INPUTS[el.dataset.input]) INPUTS[el.dataset.input](el, e); });
+  document.addEventListener('submit', (e) => { const f = e.target.closest('form[data-form]'); if (f && FORMS[f.dataset.form]) { e.preventDefault(); FORMS[f.dataset.form](f); } });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.matches('.qty input')) e.target.blur(); if (e.key === 'Escape') closeSheet(); });
+  $('#sheetwrap').addEventListener('click', (e) => { if (e.target.id === 'sheetwrap') closeSheet(); });
+  $('#filepick').addEventListener('change', (e) => onFilePicked(e.target.files && e.target.files[0]));
+  window.addEventListener('hashchange', () => { closeSheet(true); render(); window.scrollTo(0, 0); const f = S.afterNav; S.afterNav = null; if (f) f(); });
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); S.installPrompt = e; if (route().name === 'more') render(); });
+}
+
+/* ---------- local data upgrade when a new app version opens old data ---------- */
+async function upgradeLocalDataIfNeeded() {
+  const stored = S.meta.schema_version;
+  if (!stored) { if (S.data.customers.length || S.meta.onboarded) await setMeta({ schema_version: APP.schemaVersion }); return true; }
+  if (stored === APP.schemaVersion) return true;
+  if (stored > APP.schemaVersion) {
+    showFatal(`The data on this phone was saved by a newer version of the app (data format ${stored}). Please open the newest version of the app. Your data has not been changed.`);
+    return false;
+  }
+  const before = snapshot();
+  const { data } = C.migrateData(before, stored);
+  const norm = C.normalizeData(data);
+  const v = C.validateData(norm);
+  if (v.errors.length) { showFatal('The app could not upgrade your data safely. Your data has not been changed. Please open the previous version and make a backup. ' + v.errors.slice(0, 3).join(' ')); return false; }
+  const meta = { ...S.meta, schema_version: APP.schemaVersion, upgraded_from_schema: stored, upgraded_at: C.nowISO() };
+  await DB.replaceAll(norm, meta);
+  await reloadFromDB();
+  return true;
+}
+
+/* ---------- start ---------- */
+async function boot() {
+  wire();
+  try { await DB.open(); await reloadFromDB(); }
+  catch (e) { console.error(e); showFatal(e && e.message ? e.message : String(e)); return; }
+  if (!(await upgradeLocalDataIfNeeded())) return;
+  render();
+  if (!S.meta.onboarded && S.data.customers.length === 0) showOnboarding();
+  else if (!S.meta.onboarded) await setMeta({ onboarded: true });
+  if (route().name === 'settings') showPersist();
+  window.addEventListener('hashchange', () => { if (route().name === 'settings') showPersist(); });
+  registerSW();
+}
+function registerSW() {
+  if (!('serviceWorker' in navigator) || window.claude || !/^https?:$/.test(location.protocol)) return;
+  navigator.serviceWorker.register('./sw.js').then((reg) => {
+    const offer = (w) => { window.__waitingSW = w; $('#updatebar').hidden = false; };
+    if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
+    reg.addEventListener('updatefound', () => {
+      const w = reg.installing;
+      if (w) w.addEventListener('statechange', () => { if (w.state === 'installed' && navigator.serviceWorker.controller) offer(w); });
+    });
+  }).catch((e) => console.warn('Offline mode not available', e));
+  // Reload only when an UPDATE takes over (not on the very first install)
+  const hadController = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController && !reloading) { reloading = true; location.reload(); } });
+}
+window.ArdaasApp = { S, DB, reloadFromDB, render };   // for testing
+boot();
+
+})();
+</script>
+</body>
+</html>
