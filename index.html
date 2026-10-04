@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0f6a49">
 <meta name="description" content="Daily milk, bills and payments for Ardaas Agri & Milk Farm. Works offline. Data stays on this phone.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -55,13 +55,13 @@
 
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html, body { background: var(--bg); color: var(--ink); }
+html, body { background: var(--bg); color: var(--ink); overscroll-behavior-y: none; }
 body { margin: 0; font-family: var(--font); font-size: 16px; line-height: 1.45; -webkit-text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
 button, input, select, textarea { font: inherit; color: inherit; }
 a { color: var(--accent); }
 .num, .stat b, td, .amt, .money { font-variant-numeric: tabular-nums; }
 
-#app { max-width: 560px; margin: 0 auto; padding: 12px 16px calc(var(--nav-h) + 28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; }
+#app { max-width: 560px; margin: 0 auto; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(var(--nav-h) + 28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; }
 #view { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 
 /* headings */
@@ -270,7 +270,7 @@ form.stack { display: flex; flex-direction: column; gap: 14px; }
     name: 'Ardaas Agri & Milk Farm',
     id: 'ardaas-milk',
     dbName: 'ardaas-milk-db',
-    version: '1.0.0',      // app release number shown to the user
+    version: '1.0.1',      // app release number shown to the user
     schemaVersion: 1,      // shape of customers / milk_records / payments / settings
     backupVersion: 1,      // shape of the backup file envelope
     minSchemaSupported: 1  // oldest data shape this app can still upgrade
@@ -913,7 +913,8 @@ function openSheet(html, { locked = false } = {}) {
   $('#sheetwrap').hidden = false;
   document.body.style.overflow = 'hidden';
   const f = $('#sheet [autofocus]');
-  if (f) setTimeout(() => f.focus(), 50);
+  // focus the first field, unless the person already tapped into another field
+  if (f) setTimeout(() => { const a = document.activeElement; if (!a || a === document.body || !$('#sheet').contains(a)) f.focus(); }, 50);
 }
 function closeSheet(force) {
   if (sheetLocked && !force) return;

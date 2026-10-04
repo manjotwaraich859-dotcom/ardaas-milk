@@ -1,7 +1,7 @@
 /* Ardaas Milk service worker — makes the app open with no internet.
    It caches only the APP FILES. Customer data lives in IndexedDB and is never
    touched here, so updating the app never deletes records. */
-const CACHE = 'ardaas-milk-app-1.0.0';
+const CACHE = 'ardaas-milk-app-1.0.1';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
